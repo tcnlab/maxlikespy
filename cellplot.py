@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 import scipy.signal
 from models import Const
 import matplotlib as mpl
@@ -96,9 +95,7 @@ class CellPlot(object):
 
         """
         if isinstance(model, Const):
-            # plt.axhline(y=model.fit, color='r', linestyle='-')
-            x1, x2 = [model.region.region_low, model.fit], [model.region.region_high, model.fit]
-            plt.plot(x1, x2)
+            plt.axhline(y=model.fit, color='r', linestyle='-')
         else:
             plt.plot(model.region, model.expose_fit(), label=model.name)
 
