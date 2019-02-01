@@ -51,12 +51,18 @@ An instance of two required classes must be initialized:
  * data_processor - the previously initialized DataProcessor object
  * models - list of models to be fit, as strings.
  * subsample - float signifying percentage of trials to be used, 0 if all are desired
- * swarm params - optional dict the user can provide if overriding the particle swarm solver's parameters is desired. this takes the form: `"phip" : 0.5,"phig" : 0.5, "omega" : 0.5,"minstep" : 1e-8, "minfunc" : 1e-8, "maxiter" : 1000`. It is recommended by the `pyswarm` documentation to keep the first three parameters form 0 to 1. Further documentation can be found on their website.
+ * swarm params - optional dict the user can provide if overriding the particle swarm solver's parameters is desired. this takes the form: 
+ ```
+ "phip" : 0.5,"phig" : 0.5, "omega" : 0.5,"minstep" : 1e-8, "minfunc" : 1e-8, "maxiter" : 1000
+ ```
+ It is recommended by the `pyswarm` documentation to keep the first three parameters form 0 to 1. Further documentation can be found on their website.
  
  Typical usage from this stage, for example to fit and compare two nested models called "Time" and "Const", would be to first set your model upper and lower bounds. Bounds are given in the form of a list of tuples for each parameter.
  
- `pipeline.set_model_bounds("Time", bounds_t)`
- `pipeline.set_model_bounds("Const", bounds_c)`
+ ```
+ pipeline.set_model_bounds("Time", bounds_t)
+ pipeline.set_model_bounds("Const", bounds_c)
+ ```
  
  Then fit all models, where number of iterations is the number of times the solver should run without finding a better parameter fit.
  
