@@ -7,7 +7,7 @@ import os
 import json
 import sys
 from scipy.stats import chi2
-
+import util
 
 
 class AnalysisPipeline(object):
@@ -171,8 +171,8 @@ class AnalysisPipeline(object):
                 model_instance = self.model_dict[model][cell]
                 self._fit_model(model_instance, iterations)
                 cell_fits[cell][model_instance.__class__.__name__] = model_instance.fit.tolist()
-            
-        self._save_data(cell_fits, "cell_fits")
+            util.save_cell_data(cell_fits, "cell_fits", cell)
+        
 
     def _fit_model(self, model, iterations):
         """Fit given model parameters.
@@ -207,18 +207,20 @@ class AnalysisPipeline(object):
 
         return model
 
-    def _save_data(self, data, filename):
+    def _save_data(self, data, filename, cell):
         """Dumps data to json.
 
         """
-        try:
-            with open(os.getcwd() + "/results/%s.txt" % filename) as d:
-                write = json.load(d)
-                write.update(input)
-        except:
-            write = data
-        with open(os.getcwd() + "/results/%s.txt" % filename, 'w') as f:
-            json.dump(write, f)
+        with open((os.getcwd() + "/results/{0}_{1}.txt").format(filename, cell), 'w') as f:
+            json.dump(data, f)
+        # try:
+        #     with open(os.getcwd() + "/results/%s.txt" % filename) as d:
+        #         write = json.load(d)
+        #         write.update(input)
+        # except:
+        #     write = data
+        # with open(os.getcwd() + "/results/%s.txt" % filename, 'w') as f:
+        #     json.dump(write, f)
 
     def _do_compare(self, model_min, model_max, cell):
         """Internally runs likelhood ratio test.
@@ -237,6 +239,7 @@ class AnalysisPipeline(object):
                 max_model,
                 0.05
         ))
+        util.save_cell_data(data={cell:outcome}, filename="model_comparisons", cell=cell)
         print(outcome)
         plotter.plot_comparison(min_model, max_model, cell)
         print("TIME IS")
@@ -248,6 +251,8 @@ class AnalysisPipeline(object):
     def _get_lls(self, model_min, model_max, cell):
         min_model = self.model_dict[model_min][cell]
         max_model = self.model_dict[model_max][cell]
+        lls = {cell:[min_model.fun, max_model.fun]}
+        util.save_cell_data(lls, filename="log_likelihoods", cell=cell)
 
         return [min_model.fun, max_model.fun]
 
@@ -267,8 +272,8 @@ class AnalysisPipeline(object):
         outcomes = {cell:self._do_compare(model_min, model_max, cell) for cell in range(*self.cell_range)}
         lls = {cell:self._get_lls(model_min, model_max, cell) for cell in range(*self.cell_range)}
 
-        self._save_data(data=outcomes, filename="model_comparisons")
-        self._save_data(data=lls, filename="log_likelihoods")
+        # self._save_data(data=outcomes, filename="model_comparisons")
+        # self._save_data(data=lls, filename="log_likelihoods")
 
     def lr_test(self, model_min, model_max, p_threshold):
         """Performs likelihood ratio test.
