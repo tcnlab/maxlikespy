@@ -11,4 +11,4 @@ for pid in ${pids[*]}; do
     wait $pid
 done
 
-qsub -pe omp 1 -l h_rt=140:00:00 -V ./run_one_cell.sh 0 10
+qsub -pe omp 1 -l h_rt=140:00:00 -V ./stich_output.py 0 10
