@@ -57,15 +57,16 @@ class DataProcessor(object):
 
     """
 
-    def __init__(self, path, cell_range, num_conditions, time_info=None):
+    def __init__(self, path, cell_range, time_info=None):
         self.path = path
         # self.cell_range = cell_range[:]
         # self.cell_range[1] += 1
         self.cell_range = cell_range
-        self.num_conditions = num_conditions
         self.spikes = self._extract_spikes()
         self.num_trials = self._extract_num_trials()
         conditions = self._extract_conditions()
+        if conditions:
+            self.num_conditions = len(np.unique(conditions))
         self.conditions_dict = self._associate_conditions(conditions)
         # if time_info is not provided, a default window will be constructed
         # based off the min and max values found in the data
