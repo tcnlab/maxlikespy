@@ -296,7 +296,7 @@ class AnalysisPipeline(object):
         llmin = model_min.fun
         llmax = model_max.fun
         delta_params = model_max.num_params - model_min.num_params
-        lr = -2 * (llmax - llmin)
+        lr = -2 * (llmax - llmin) #log-likelihood ratio
         p = chi2.sf(lr, delta_params)
         print(llmin, llmax, delta_params)
         print("p-value is: " + str(p))
