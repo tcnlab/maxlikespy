@@ -23,8 +23,7 @@ def collate_output(cell_range, filename):
     out = {cell: get_data(filename, cell) for cell in range(*cell_range)}
     return out
  
-
-def get_data(filename, cell):
+def get_data(filename, cell): #add try 
     with open((os.getcwd() + "/results/{0}_{1}.txt").format(filename, cell)) as d:
         data = json.load(d)
     return data[str(cell)]

@@ -10,8 +10,8 @@ import util
 def run_script(cell_range):
 
 
-    # path_to_data = '/Users/stevecharczynski/workspace/data/brincat_miller'
-    path_to_data = "/usr3/bustaff/scharcz/workspace/brincat_miller/"
+    path_to_data = '/Users/stevecharczynski/workspace/data/brincat_miller'
+    # path_to_data = "/usr3/bustaff/scharcz/workspace/brincat_miller/"
     time_info = RegionInfo(500, 1750, 1.0)
     data_processor = DataProcessor(path_to_data, cell_range, 0, time_info=time_info)
     n = 2
@@ -40,7 +40,7 @@ def run_script(cell_range):
     # time_info = RegionInfo(0, 2000, 1.0)
     # # data_descriptor = DescribeData(path_to_data, False, "ms", [44,56], 0, time_info=time_info)
     # # data_descriptor = DescribeData(path_to_data, False, "ms", 60, 0)
-    # cell_range = [44,45]
+    # # cell_range = [44,45]
     # data_processor = DataProcessor(path_to_data, cell_range, 0, time_info=time_info)
     # n = 2
     # bounds = [(0, 1 / n), (-500, 2500), (0.01, 5000), (10**-10, 1 / n)]
@@ -59,12 +59,12 @@ def run_script(cell_range):
     # pipeline.fit_all_models(1)
     # pipeline.compare_models("Const", "Time")
 
-    # cell_range[1] += 1
+    cell_range[1] += 1
     
     util.collect_data(cell_range, "log_likelihoods")
     util.collect_data(cell_range, "model_comparisons")
     util.collect_data(cell_range, "cell_fits")
-
+# run_script([11,12])
 if __name__ == "__main__":
     cell_range = sys.argv[-2:]
     cell_range = list(map(int, cell_range))
