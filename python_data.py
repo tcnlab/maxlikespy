@@ -9,6 +9,7 @@ import math
 from region_info import RegionInfo
 import sys
 import json
+import errno
 
 
 class DataProcessor(object):
@@ -58,8 +59,9 @@ class DataProcessor(object):
 
     def __init__(self, path, cell_range, num_conditions, time_info=None):
         self.path = path
-        self.cell_range = cell_range[:]
-        self.cell_range[1] += 1
+        # self.cell_range = cell_range[:]
+        # self.cell_range[1] += 1
+        self.cell_range = cell_range
         self.num_conditions = num_conditions
         self.spikes = self._extract_spikes()
         self.num_trials = self._extract_num_trials()
@@ -103,11 +105,13 @@ class DataProcessor(object):
         """
         spikes = {}
         if os.path.exists(self.path + "/spikes/"):
-            for i in range(*self.cell_range):
+            for i in self.cell_range:
                 spike_path = self.path + '/spikes/%d.npy' % i
                 spikes[i] = np.load(spike_path, encoding="bytes")
         else:
             print("Spikes folder not found.")
+            raise FileNotFoundError(
+                errno.ENOENT, os.strerror(errno.ENOENT), self.path+"/spikes/") 
         return spikes
 
     def _extract_num_trials(self):
@@ -172,7 +176,7 @@ class DataProcessor(object):
         """
         spikes = self.spikes_binned
         summed_spikes = {}
-        for cell in range(*self.cell_range):
+        for cell in self.cell_range:
             summed_spikes[cell] = np.sum(spikes[cell], 0)
         return summed_spikes
 
@@ -197,7 +201,7 @@ class DataProcessor(object):
             return None
         else:
             summed_spikes_condition = {}
-            for cell in range(*self.cell_range):
+            for cell in self.cell_range:
                 summed_spikes_condition[cell] = {}
                 for condition in range(self.num_conditions):
                     summed_spikes_condition[cell][condition+1] = {}
@@ -238,7 +242,7 @@ class DataProcessor(object):
             return None
         else:
             conditions_dict = {}
-            for cell in range(*self.cell_range):
+            for cell in self.cell_range:
                 conditions_dict[cell] = {i+1:np.zeros([self.num_trials[cell]]) for i in range(self.num_conditions)}
                 cond = conditions[cell][0:self.num_trials[cell]]
                 for trial, condition in enumerate(cond):

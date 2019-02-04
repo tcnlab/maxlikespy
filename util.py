@@ -20,7 +20,7 @@ def save_cell_data(data, filename, cell):
         json.dump(data, f)
 
 def collate_output(cell_range, filename):
-    out = {cell: get_data(filename, cell) for cell in range(*cell_range)}
+    out = {cell: get_data(filename, cell) for cell in cell_range}
     return out
  
 def get_data(filename, cell): #add try 

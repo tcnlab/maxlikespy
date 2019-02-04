@@ -52,8 +52,9 @@ class AnalysisPipeline(object):
 
     def __init__(self, cell_range, data_processor, models, subsample, swarm_params=None):
         self.time_start = time.time()
-        self.cell_range = cell_range[:]
-        self.cell_range[1] += 1
+        # self.cell_range = cell_range[:]
+        # self.cell_range[1] += 1
+        self.cell_range = cell_range
         self.data_processor = data_processor
         self.subsample = subsample
         if not swarm_params:
@@ -76,7 +77,7 @@ class AnalysisPipeline(object):
         model_dict = {model:{} for model in models_to_fit}
         condition_data = self.data_processor.conditions_dict
         spike_info = self.data_processor.spike_info
-        for cell in range(*self.cell_range):                
+        for cell in self.cell_range:                
             if self.subsample:
                 sampled_trials = self._subsample_trials(
                                 self.data_processor.num_trials[cell], self.subsample)
@@ -148,7 +149,7 @@ class AnalysisPipeline(object):
         """
         try:
             [self.model_dict[model][cell].set_bounds(bounds) 
-                for cell in range(*self.cell_range)
+                for cell in self.cell_range
                 if model in self.model_dict]
         except:
             raise ValueError("model does not match supplied models")
@@ -164,7 +165,7 @@ class AnalysisPipeline(object):
 
         """
         cell_fits = {}
-        for cell in range(*self.cell_range):
+        for cell in self.cell_range:
             print(cell)
             cell_fits[cell] = {}
             for model in self.model_dict:
@@ -269,8 +270,8 @@ class AnalysisPipeline(object):
             Name must match implementation.
 
         """
-        outcomes = {cell:self._do_compare(model_min, model_max, cell) for cell in range(*self.cell_range)}
-        lls = {cell:self._get_lls(model_min, model_max, cell) for cell in range(*self.cell_range)}
+        outcomes = {cell:self._do_compare(model_min, model_max, cell) for cell in self.cell_range}
+        lls = {cell:self._get_lls(model_min, model_max, cell) for cell in self.cell_range}
 
         # self._save_data(data=outcomes, filename="model_comparisons")
         # self._save_data(data=lls, filename="log_likelihoods")
@@ -303,7 +304,7 @@ class AnalysisPipeline(object):
         return p < p_threshold
         
     def show_condition_fit(self, model):
-        for cell in range(*self.cell_range):
+        for cell in self.cell_range:
             plotter = CellPlot(self.analysis_dict[cell]) 
             extracted_model = self.model_fits[model][cell]
             plotter.plot_cat_fit(extracted_model)
