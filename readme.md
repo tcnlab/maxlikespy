@@ -11,18 +11,15 @@ This project is a WIP.
 Clone repo locally.
 
 ### Prerequisites
-
-What things you need to install the software and how to install them
-
 ```
-numpy X.x
-scipy X.x
-pyswarm X.x
+numpy 
+scipy
+pyswarm
 
 ```
 ## Data Formatting
 
-Spike data currently is expected to be in the form of Numpy arrays of dimension NumberOfCells X MaxTrials, with spikes in milliseconds. Data processing code currently expects one file per cell, in a subdirectory named "spikes".
+Spike data currently is expected to be in the form of Numpy arrays of dimension NumberOfCells X MaxTrials, with spikes in milliseconds. Data processing code expects one file per cell, in a subdirectory named "spikes".
 
 In addition to spikes, "number_of_trials.csv" must be created to denote how many trials exist for each cell.
 
@@ -40,10 +37,9 @@ In /examples there is an example script going through a full analysis routine wi
 
 An instance of two required classes must be initialized:
 
-  `DataProcessor(path, cell_range, num_conditions, time_info=None)` where
+  `DataProcessor(path, cell_range, time_info=None)` where
   * path - absolute file path to data folder
-  * cell_range - list indicating the first and last cell to ba analyzed
-  * num_conditions - integer indicating the total amount of conditions in "conditions.csv", 0 if none
+  * cell_range - range indicating the first and last cell to be analyzed
   * time_info - An instance of a helper class describing the experimental time range initialized as `RegionInfo(low_bound, high_bound, 1.0)`
   
  `AnalysisPipeline(cell_range, data_processor, models, subsample, swarm_params=None)`where
@@ -55,7 +51,7 @@ An instance of two required classes must be initialized:
  ```
  "phip" : 0.5,"phig" : 0.5, "omega" : 0.5,"minstep" : 1e-8, "minfunc" : 1e-8, "maxiter" : 1000
  ```
- It is recommended by the `pyswarm` documentation to keep the first three parameters form 0 to 1. Further documentation can be found on their website.
+ It is recommended by the `pyswarm` documentation to set the first three parameters between 0 and 1. Further documentation can be found on their website.
  
  Typical usage from this stage, for example to fit and compare two nested models called "Time" and "Const", would be to first set your model upper and lower bounds. Bounds are given in the form of a list of tuples for each parameter.
  
@@ -78,7 +74,7 @@ These functions will save off in /results a plot of model comparisons and json f
 
 ## Adding custom models
 
-New models should be added to models.py and inherit Model base class as well as implement all parent methods. A model, "Time", consisting of a guassian firing field in addition to a constant firing field is provided for example.
+New models should be added to models.py and inherit the Model base class as well as implement all parent methods. A model, "Time", consisting of a guassian firing field in addition to a constant firing field is provided for example.
 
 
 ## Built With

@@ -23,8 +23,8 @@ class DataProcessor(object):
     time_info : TimeInfo
         Object that holds timing information including the beginning and
         end of the region of interest and the time bin. All in milliseconds.
-    cell_range : list of int 
-        Beginning and end cell to be analyzed.
+    cell_range : range
+        Beginning and end cell to be analyzed, in range format.
     num_conditions : int
         Integer signifying the number of experimental conditions in the
         dataset. Conditions are information that exists on a per trial basis.
@@ -36,8 +36,8 @@ class DataProcessor(object):
     time_info : TimeInfo
         Object that holds timing information including the beginning and
         end of the region of interest and the time bin. All in milliseconds.
-    cell_range : list of int 
-        Beginning and end cell to be analyzed.
+    cell_range : range
+        Beginning and end cell to be analyzed, in range format.
     num_conditions : int
         Integer signifying the number of experimental conditions in the
         dataset.

@@ -16,8 +16,8 @@ class AnalysisPipeline(object):
 
     Parameters
     ----------
-    cell_range : list of int 
-        Beginning and end cell to be analyzed.
+    cell_range : range
+        Beginning and end cell to be analyzed, in range format.
     data_processor : DataProcessor
         Object returned by data processing module that includes all relevent cell data.
     models : list of str
@@ -32,8 +32,8 @@ class AnalysisPipeline(object):
     ----------
     time_start : float
         Time keeping variable for diagnostic purposes.
-    cell_range : list of int 
-        Beginning and end cell to be analyzed.
+    cell_range : range
+        Beginning and end cell to be analyzed, in range format.
     data_processor : DataProcessor
         Object returned by data processing module that includes all relevent cell data.
     time_info : TimeInfo
