@@ -5,7 +5,9 @@ touch results/cell_fits.txt
 touch results/model_comparisons.txt
 touch results/log_likelihoods.txt
 
-numJobs=$(echo "$myJobs" | wc -w)      # Count the jobs
+first = $1
+last = $2
+numJobs=$((last-first))     # Count the jobs
 myJobIDs=""                            # Initialize an empty list of job IDs
 for i in `seq 0 10`; do
     jobID_full=$(qsub -pe omp 1 -l h_rt=140:00:00 -V ./run_one_cell.sh $i)

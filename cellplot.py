@@ -17,7 +17,7 @@ class CellPlot(object):
 
     """
 
-    def __init__(self, summed_spikes, conditions=0):
+    def __init__(self, summed_spikes):
         self.summmed_spikes = summed_spikes
 
     def plot_raster(self, spikes, time_info, condition=0, conditions=0):
@@ -118,4 +118,9 @@ class CellPlot(object):
             avg_spikes = spikes / int(num_trials)
 
         return scipy.ndimage.filters.gaussian_filter(avg_spikes, 50)
+
+
+        
+
+
 
