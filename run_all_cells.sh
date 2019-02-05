@@ -9,7 +9,7 @@ first = $1
 last = $2
 numJobs=$((last-first))     # Count the jobs
 myJobIDs=""                            # Initialize an empty list of job IDs
-for i in `seq 0 10`; do
+for i in `seq $1 $2`; do
     jobID_full=$(qsub -pe omp 1 -l h_rt=140:00:00 -V ./run_one_cell.sh $i)
     # jobID_full will look like "12345.machinename", so use sed
     # to get just the numbers
@@ -38,4 +38,4 @@ while [ $numDone -lt $numJobs ]; do    # Less-than operator
 done
 
 #qsub -pe omp 1 -l h_rt=140:00:00 -V python3 stitch_output.py 0 10
-python3 stitch_output.py 0 10
+python3 stitch_output.py $1 $2
