@@ -72,7 +72,7 @@ class CellPlot(object):
         """
         fig = plt.figure()
         fig.suptitle("cell " + str(cell_no))
-        fig_name = os.getcwd() + "/results/figs/cell_%d_" + model_min.name + "_" + model_max.name + ".png"
+        fig_name = os.getcwd() + "/results/figs/cell_%d_" + model_min.__class__.__name__ + "_" + model_max.__class__.__name__ + ".png"
 
         plt.subplot(2,1,1)
         self.plot_fit(model_min)
@@ -97,7 +97,7 @@ class CellPlot(object):
         if isinstance(model, Const):
             plt.axhline(y=model.fit, color='r', linestyle='-')
         else:
-            plt.plot(model.region, model.expose_fit(), label=model.name)
+            plt.plot(model.region, model.expose_fit(), label=model.__class__.__name__)
 
     def smooth_spikes(self, spikes, num_trials, subsample=0):
         """Applys a gaussian blur filter to spike data.

@@ -24,7 +24,6 @@ class Time(Model):
     def __init__(self, data):
         super().__init__(data)
         self.spikes = data['spikes']
-        self.name = "time"
         self.num_params = 4
         self.region = self.t
         self.param_names = ["a_0", "ut", "st", "a1"]
@@ -76,9 +75,7 @@ class Const(Model):
         super().__init__(data)
         self.o = None
         self.spikes = data['spikes']
-        self.model_type = "time"
         self.region = self.t
-        self.name = "constant"
         self.num_params = 1
         self.param_names = ["a1"]
 
