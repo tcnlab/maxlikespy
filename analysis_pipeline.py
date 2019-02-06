@@ -171,7 +171,8 @@ class AnalysisPipeline(object):
             for model in self.model_dict:
                 model_instance = self.model_dict[model][cell]
                 self._fit_model(model_instance, iterations)
-                cell_fits[cell][model_instance.__class__.__name__] = model_instance.fit.tolist()
+                param_dict = {param:model_instance.fit.tolist()[index] for index, param in enumerate(model_instance.param_names)}
+                cell_fits[cell][model_instance.__class__.__name__] = param_dict
             util.save_cell_data(cell_fits, "cell_fits", cell)
         
 

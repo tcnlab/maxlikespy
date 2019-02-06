@@ -27,6 +27,7 @@ class Time(Model):
         self.name = "time"
         self.num_params = 4
         self.region = self.t
+        self.param_names = ["a_0", "ut", "st", "a1"]
 
     def build_function(self, x):
         #pso stores params in vector x
@@ -79,6 +80,7 @@ class Const(Model):
         self.region = self.t
         self.name = "constant"
         self.num_params = 1
+        self.param_names = ["a1"]
 
     def build_function(self, x):
         o = x[0]
