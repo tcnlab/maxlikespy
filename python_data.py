@@ -65,7 +65,7 @@ class DataProcessor(object):
         self.spikes = self._extract_spikes()
         self.num_trials = self._extract_num_trials()
         conditions = self._extract_conditions()
-        if conditions:
+        if conditions is not None:
             self.num_conditions = len(np.unique(conditions))
         self.conditions_dict = self._associate_conditions(conditions)
         # if time_info is not provided, a default window will be constructed
@@ -107,8 +107,9 @@ class DataProcessor(object):
         spikes = {}
         if os.path.exists(self.path + "/spikes/"):
             for i in self.cell_range:
-                spike_path = self.path + '/spikes/%d.npy' % i
-                spikes[i] = np.load(spike_path, encoding="bytes")
+                spike_path = self.path + '/spikes/%d.txt' % i
+                with open(spike_path, 'rb') as f:
+                    spikes[i] = np.array(json.load(f, encoding="bytes"))
         else:
             print("Spikes folder not found.")
             raise FileNotFoundError(

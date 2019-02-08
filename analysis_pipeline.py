@@ -209,21 +209,6 @@ class AnalysisPipeline(object):
 
         return model
 
-    def _save_data(self, data, filename, cell):
-        """Dumps data to json.
-
-        """
-        with open((os.getcwd() + "/results/{0}_{1}.txt").format(filename, cell), 'w') as f:
-            json.dump(data, f)
-        # try:
-        #     with open(os.getcwd() + "/results/%s.txt" % filename) as d:
-        #         write = json.load(d)
-        #         write.update(input)
-        # except:
-        #     write = data
-        # with open(os.getcwd() + "/results/%s.txt" % filename, 'w') as f:
-        #     json.dump(write, f)
-
     def _do_compare(self, model_min, model_max, cell):
         """Internally runs likelhood ratio test.
 
