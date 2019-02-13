@@ -22,16 +22,15 @@ class Time(Model):
     """
 
     def __init__(self, data):
-        super().__init__(data)
+        super().__init__(data) 
         self.spikes = data['spikes']
-        self.num_params = 4
         self.region = self.t
-        self.param_names = ["a_0", "ut", "st", "a1"]
+        self.param_names = ["a_1", "ut", "st", "a_0"]
 
     def build_function(self, x):
         #pso stores params in vector x
         a, ut, st, o = x[0], x[1], x[2], x[3]
- 
+
         self.function = (
             (a * np.exp(-np.power(self.t - ut, 2.) / (2 * np.power(st, 2.)))) + o)
         res = np.sum(self.spikes * (-np.log(self.function)) +
@@ -73,11 +72,9 @@ class Const(Model):
 
     def __init__(self, data):
         super().__init__(data)
-        self.o = None
         self.spikes = data['spikes']
         self.region = self.t
-        self.num_params = 1
-        self.param_names = ["a1"]
+        self.param_names = ["a_0"]
 
     def build_function(self, x):
         o = x[0]

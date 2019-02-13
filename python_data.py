@@ -157,14 +157,14 @@ class DataProcessor(object):
             return None
 
     def extract_spike_info(self):
-        if os.path.exists(self.path+"/pos_sim.txt"):
-            with open(self.path + "/pos_sim.txt", 'rb') as f:
+        if os.path.exists(self.path+"/spike_info.txt"):
+            with open(self.path + "/spike_info.txt", 'rb') as f:
                 data = json.load(f)
             # return {int(k):v for k,v in data["position"].items()}
             return data
 
         else:
-            print("xy_data.npy not found")
+            print("spike_info not found")
             return None
 
     def _sum_spikes(self):

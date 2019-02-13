@@ -71,6 +71,13 @@ class Model(object):
             bounds=self.bounds,
             options={'disp': False}
         )
+        # second_pass_res = minimize(
+        #     self.build_function,
+        #     self.x0,
+        #     method='BFGS',
+        #     tol=1e-10,
+        #     options={'disp': False}
+        # )
         self.fit = second_pass_res.x
         self.fun = second_pass_res.fun
         return (self.fit, self.fun)
@@ -130,8 +137,10 @@ class Model(object):
             Tuples consisting of lower and upper bounds per parameter.
             These must be passed in the same order as defined in the model.
 
-        """
-        self.bounds = bounds
-        self.lb = [x[0] for x in self.bounds]
-        self.ub = [x[1] for x in self.bounds]
+        """       
+        if len(bounds) != len(self.param_names):
+                raise AttributeError("Wrong number of bounds supplied")
+        self.bounds = [bounds[x] for x in self.param_names]
+        self.lb = [bounds[x][0] for x in self.param_names]
+        self.ub = [bounds[x][1] for x in self.param_names]
 

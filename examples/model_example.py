@@ -25,7 +25,6 @@ class Time(Model):
         super().__init__(data)
         self.spikes = data['spikes']
         self.name = "time"
-        self.num_params = 4
         self.region = self.t
 
     def build_function(self, x):

@@ -109,8 +109,11 @@ class AnalysisPipeline(object):
                     model_data['spike_info'] = spike_info[str(cell)]
                 model_data['swarm_params'] = self.swarm_params
                 #this creates an instance of class "model" in the module "models"
-                model_instance = getattr(models, model)(model_data)
-                model_dict[model][cell] = model_instance
+                try:
+                    model_instance = getattr(models, model)(model_data)
+                    model_dict[model][cell] = model_instance
+                except:
+                    raise NameError("Supplied model \"{0}\" does not exist".format(model))
 
         return model_dict
 
@@ -147,12 +150,12 @@ class AnalysisPipeline(object):
             List of lower and upper bounds for the solver.
 
         """
-        try:
-            [self.model_dict[model][cell].set_bounds(bounds) 
-                for cell in self.cell_range
-                if model in self.model_dict]
-        except:
-            raise ValueError("model does not match supplied models")
+        for cell in self.cell_range:
+            if model in self.model_dict:
+                self.model_dict[model][cell].set_bounds(bounds) 
+            else:
+                raise ValueError("model does not match supplied models")
+
 
     def fit_all_models(self, iterations):
         """Fits parameters for all models then saves to disk.
@@ -165,15 +168,20 @@ class AnalysisPipeline(object):
 
         """
         cell_fits = {}
+        cell_lls = {}
         for cell in self.cell_range:
             print(cell)
             cell_fits[cell] = {}
+            cell_lls[cell] = {}
             for model in self.model_dict:
                 model_instance = self.model_dict[model][cell]
                 self._fit_model(model_instance, iterations)
                 param_dict = {param:model_instance.fit.tolist()[index] for index, param in enumerate(model_instance.param_names)}
                 cell_fits[cell][model_instance.__class__.__name__] = param_dict
+                cell_lls[cell][model_instance.__class__.__name__] = model_instance.fun
+
             util.save_cell_data(cell_fits, "cell_fits", cell)
+            util.save_cell_data(cell_lls, "log_likelihoods", cell)
         
 
     def _fit_model(self, model, iterations):
@@ -209,24 +217,34 @@ class AnalysisPipeline(object):
 
         return model
 
-    def _do_compare(self, model_min, model_max, cell):
+    def _do_compare(self, model_min, model_max, cell, p_value):
         """Internally runs likelhood ratio test.
 
         """
         plotter = CellPlot(
             self.data_processor.spikes_summed[cell]
         ) #possibly rewrite to create one CellPlot and pass params for plotting
-        min_model = self.model_dict[model_min][cell]
-        max_model = self.model_dict[model_max][cell]
+        try:
+            min_model = self.model_dict[model_min][cell]
+        except:
+            raise NameError("Supplied model \"{0}\" has not been fit".format(model_min))
+        try:
+            max_model = self.model_dict[model_max][cell]
+        except:
+            raise NameError("Supplied model \"{0}\" has not been fit".format(model_max))
 
         print(min_model.fit)
         print(max_model.fit)
         outcome = str(self.lr_test(
                 min_model, 
                 max_model,
-                0.05
+                p_value
         ))
-        util.save_cell_data(data={cell:outcome}, filename="model_comparisons", cell=cell)
+        outcome_dict = {cell:
+            {max_model.__class__.__name__+"_"+min_model.__class__.__name__:outcome}}
+        util.save_cell_data(data=outcome_dict, 
+                                filename="model_comparisons",
+                                cell=cell)
         print(outcome)
         plotter.plot_comparison(min_model, max_model, cell)
         print("TIME IS")
@@ -238,13 +256,13 @@ class AnalysisPipeline(object):
     def _get_lls(self, model_min, model_max, cell):
         min_model = self.model_dict[model_min][cell]
         max_model = self.model_dict[model_max][cell]
-        lls = {cell:[min_model.fun, max_model.fun]}
+        lls = {cell:{min_model.__class__.__name__:min_model.fun, max_model.__class__.__name__:max_model.fun}}
         util.save_cell_data(lls, filename="log_likelihoods", cell=cell)
 
         return [min_model.fun, max_model.fun]
 
-    def compare_models(self, model_min, model_max):
-        """Runs likelihood ratio test on likelihoods from given model parameters then saves to disk.
+    def compare_models(self, model_min, model_max, p_value):
+        """Runs likelihood ratio test on likelihoods from given nested model parameters then saves to disk.
         
         Parameters
         ----------
@@ -256,8 +274,8 @@ class AnalysisPipeline(object):
             Name must match implementation.
 
         """
-        outcomes = {cell:self._do_compare(model_min, model_max, cell) for cell in self.cell_range}
-        lls = {cell:self._get_lls(model_min, model_max, cell) for cell in self.cell_range}
+        outcomes = {cell:self._do_compare(model_min, model_max, cell, p_value) for cell in self.cell_range}
+        # lls = {cell:self._get_lls(model_min, model_max, cell) for cell in self.cell_range}
 
         # self._save_data(data=outcomes, filename="model_comparisons")
         # self._save_data(data=lls, filename="log_likelihoods")
@@ -282,7 +300,7 @@ class AnalysisPipeline(object):
         """
         llmin = model_min.fun
         llmax = model_max.fun
-        delta_params = model_max.num_params - model_min.num_params
+        delta_params = len(model_max.param_names) - len(model_min.param_names)
         lr = -2 * (llmax - llmin) #log-likelihood ratio
         p = chi2.sf(lr, delta_params)
         print(llmin, llmax, delta_params)
