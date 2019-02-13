@@ -27,8 +27,13 @@ def run_script(cell_range):
                     "minfunc" : 1e-10,
                     "maxiter" : 1000
                 }
-    bounds = ((0, 1 / n), mean_bounds, (10, 1000), (10**-10, 1 / n))
-    bounds_c = [(10**-10, 0.99)]
+    bounds = {
+                "a_1":[0, 1 / n],
+                "ut":[mean_bounds[0], mean_bounds[1]], 
+                "st":[10, 1000], 
+                "a_0":[10**-10, 1 / n]
+                }   
+    bounds_c = {"a_0":[10**-10, 0.999]}
     pipeline = AnalysisPipeline(cell_range, data_processor, ["Const", "Time"], 0, swarm_params)
     pipeline.set_model_bounds("Time", bounds)
     pipeline.set_model_bounds("Const", bounds_c)
@@ -86,7 +91,7 @@ def run_script(cell_range):
     util.collect_data(cell_range, "log_likelihoods")
     util.collect_data(cell_range, "model_comparisons")
     util.collect_data(cell_range, "cell_fits")
-run_script(range(45,46))
+# run_script(range(45,46))
 if __name__ == "__main__":
     cell_range = sys.argv[-2:]
     cell_range = list(map(int, cell_range))
