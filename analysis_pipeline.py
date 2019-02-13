@@ -1,7 +1,7 @@
 import models
 import time
 import matplotlib.pyplot as plt 
-from cellplot import CellPlot
+import cellplot
 import numpy as np
 import os
 import json
@@ -155,6 +155,8 @@ class AnalysisPipeline(object):
                 self.model_dict[model][cell].set_bounds(bounds) 
             else:
                 raise ValueError("model does not match supplied models")
+        
+        return True
 
 
     def fit_all_models(self, iterations):
@@ -175,6 +177,7 @@ class AnalysisPipeline(object):
             cell_lls[cell] = {}
             for model in self.model_dict:
                 model_instance = self.model_dict[model][cell]
+                print("fitting {0}".format(model))
                 self._fit_model(model_instance, iterations)
                 param_dict = {param:model_instance.fit.tolist()[index] for index, param in enumerate(model_instance.param_names)}
                 cell_fits[cell][model_instance.__class__.__name__] = param_dict
@@ -182,6 +185,8 @@ class AnalysisPipeline(object):
 
             util.save_cell_data(cell_fits, "cell_fits", cell)
             util.save_cell_data(cell_lls, "log_likelihoods", cell)
+
+        return True
         
 
     def _fit_model(self, model, iterations):
@@ -189,11 +194,11 @@ class AnalysisPipeline(object):
 
         """
         #constant models at some point got stuck in "improvement" loop
-        if isinstance(model, models.Const):
-            model.fit_params()
-        else:
-            self._iterate_fits(model, iterations)
-        
+        # if isinstance(model, models.Const):
+        #     model.fit_params()
+        # else:
+        #     self._iterate_fits(model, iterations)
+        self._iterate_fits(model, iterations)
         return model
 
     @staticmethod
@@ -221,9 +226,9 @@ class AnalysisPipeline(object):
         """Internally runs likelhood ratio test.
 
         """
-        plotter = CellPlot(
-            self.data_processor.spikes_summed[cell]
-        ) #possibly rewrite to create one CellPlot and pass params for plotting
+        
+            
+        #possibly rewrite to create one CellPlot and pass params for plotting
         try:
             min_model = self.model_dict[model_min][cell]
         except:
@@ -246,7 +251,11 @@ class AnalysisPipeline(object):
                                 filename="model_comparisons",
                                 cell=cell)
         print(outcome)
-        plotter.plot_comparison(min_model, max_model, cell)
+        cellplot.plot_comparison(
+                            self.data_processor.spikes_summed[cell],
+                            min_model, 
+                            max_model, 
+                            cell)
         print("TIME IS")
         print(time.time() - self.time_start)
         plt.show()
@@ -275,6 +284,8 @@ class AnalysisPipeline(object):
 
         """
         outcomes = {cell:self._do_compare(model_min, model_max, cell, p_value) for cell in self.cell_range}
+        
+        return True
         # lls = {cell:self._get_lls(model_min, model_max, cell) for cell in self.cell_range}
 
         # self._save_data(data=outcomes, filename="model_comparisons")

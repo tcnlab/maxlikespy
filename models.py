@@ -92,7 +92,8 @@ class Const(Model):
     def expose_fit(self):
         if self.fit is None:
             raise ValueError("fit not yet computed")
-        return self.fit
+        
+        return np.full(self.t.shape, self.fit)
 
 
 class CatSetTime(Model):
