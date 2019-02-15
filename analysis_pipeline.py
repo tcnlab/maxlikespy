@@ -320,9 +320,9 @@ class AnalysisPipeline(object):
         
     def show_condition_fit(self, model):
         for cell in self.cell_range:
-            plotter = CellPlot(self.analysis_dict[cell]) 
-            extracted_model = self.model_fits[model][cell]
-            plotter.plot_cat_fit(extracted_model)
+            extracted_model = self.model_dict[model][cell]
+            
+            cellplot.plot_cat_fit(extracted_model, cell, self.data_processor.spikes_summed_cat[cell], self.subsample)
             plt.show()
 
 

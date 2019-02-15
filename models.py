@@ -231,7 +231,7 @@ class CatTime(Model):
         self.t = np.tile(self.t, (data["num_trials"], 1))
         self.conditions = data["conditions"]
         self.spikes = data['spikes']
-        self.num_params = 7
+        self.param_names = ["ut", "st", "a_0", "a_1", "a_2", "a_3", "a_4"]
         # mean_delta = 0.10 * (self.time_info.region_high -
         #                      self.time_info.region_low)
         # mean_bounds = (

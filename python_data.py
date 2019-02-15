@@ -66,7 +66,7 @@ class DataProcessor(object):
         self.num_trials = self._extract_num_trials()
         conditions = self._extract_conditions()
         if conditions is not None:
-            self.num_conditions = len(np.unique(conditions))
+            self.num_conditions = len(np.unique(conditions[0]))
         self.conditions_dict = self._associate_conditions(conditions)
         # if time_info is not provided, a default window will be constructed
         # based off the min and max values found in the data
@@ -146,12 +146,12 @@ class DataProcessor(object):
             for the trial.
 
         """
-        if os.path.exists(self.path + "/conditions.csv"):
-            return np.loadtxt(
-                self.path +
-                '/conditions.csv',
-                delimiter=',',
-                dtype='int')
+        #convert keys to int
+        if os.path.exists(self.path + "/conditions.txt"):
+            with open(self.path + "/conditions.txt", 'rb') as f:
+                
+                return {int(k):v for k,v in json.load(f, encoding="bytes").items()}
+
         else:
             print("conditions.csv not found")
             return None

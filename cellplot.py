@@ -27,19 +27,21 @@ def plot_raster(spikes, time_info, condition=0, conditions=0):
 
     plt.scatter(scatter_data[0], scatter_data[1], c=[[0,0,0]], marker="o", s=1)
 
-def plot_cat_fit(self, model):
+def plot_cat_fit(model, cell_num, spikes, subsample=0):
     fig = plt.figure()    
     num_conditions = len(model.conditions)
-    fig.suptitle("cell " + str(self.cell_no))
-    fig_name = "figs/cell_%d_" + model.name + ".png"
+    fig.suptitle("cell " + str(cell_num))
+    fig_name = "results/figs/cell_%d_" + model.name + ".png"
     plt.legend(loc="upper left")
 
     for condition in model.conditions:
-        plt.subplot(2, num_conditions, condition + 1)
-        plt.plot(model.region, model.expose_fit(condition), label="fit")
-        plt.plot(model.region, self.smooth_spikes(self.get_model_sum(model, True)[condition]), label="spike_train")
+        if condition:
+            plt.subplot(2, num_conditions, condition + 1)
+            plt.plot(model.region, model.expose_fit(condition), label="fit")
+            plt.plot(model.region, 
+                smooth_spikes(spikes, model.num_trials, subsample=subsample, condition=condition), label="spike_train")
 
-    fig.savefig(fig_name % self.cell_no)
+    fig.savefig(fig_name % cell_num)
 
 def plot_comparison(spikes, model_min, model_max, cell_no):
     """Given two models, produces a comparison figure and saves to disk.
@@ -83,7 +85,7 @@ def plot_fit(model):
     # else:
     plt.plot(model.region, model.expose_fit(), label=model.__class__.__name__)
 
-def smooth_spikes(spikes, num_trials, subsample=0):
+def smooth_spikes(spikes, num_trials, subsample=0, condition=0):
     """Applys a gaussian blur filter to spike data.
 
     Parameters
@@ -97,7 +99,9 @@ def smooth_spikes(spikes, num_trials, subsample=0):
 
     """
     if subsample:
-        avg_spikes = spikes / int(num_trials / subsample)
+        num_trials = int(num_trials / subsample)
+    if condition:
+        avg_spikes = spikes[condition] / int(num_trials)
     else:
         avg_spikes = spikes / int(num_trials)
 
