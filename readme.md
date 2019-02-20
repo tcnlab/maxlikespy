@@ -19,15 +19,15 @@ pyswarm
 ```
 ## Data Formatting
 
-Spike data currently is expected to be in the form of Numpy arrays of dimension NumberOfCells X MaxTrials, with spikes in milliseconds. Data processing code expects one file per cell, in a subdirectory named "spikes".
+Spike data currently is expected to be in json formatted arrays of dimension NumberOfCells X MaxTrials, with spikes in milliseconds. Data processing code expects one file per cell, in a subdirectory named "spikes".
 
-In addition to spikes, "number_of_trials.csv" must be created to denote how many trials exist for each cell.
+In addition to spikes, "number_of_trials.json" must be created to denote how many trials exist for each cell.
 
 Supplentary information supported currently:
   
-  A file "conditions.csv" including integer labels per cell and trial.
+  A file "conditions.json" including integer labels per cell and trial.
   
-  A file "spike_info.txt", a json-serialized dict containing labeled information on a millisecond resolution (such as animal position).
+  A file "spike_info.json", a json-serialized dict containing labeled information on a millisecond resolution (such as animal position).
   
 Examples for these files will be provided in /examples.
 
@@ -40,7 +40,7 @@ An instance of two required classes must be initialized:
   `DataProcessor(path, cell_range, time_info=None)` where
   * path - absolute file path to data folder
   * cell_range - range indicating the first and last cell to be analyzed
-  * time_info - An instance of a helper class describing the experimental time range initialized as `RegionInfo(low_bound, high_bound, 1.0)`
+  * time_info - An instance of a helper class describing the experimental time range initialized as `RegionInfo(low_bound, high_bound)`
   
  `AnalysisPipeline(cell_range, data_processor, models, subsample, swarm_params=None)`where
  * cell_range - as above
@@ -66,7 +66,7 @@ An instance of two required classes must be initialized:
  
 Finally running
 
-`pipeline.compare_models(min_model="Const", max_model="Time")`
+`pipeline.compare_models(min_model="Const", max_model="Time", p_value=0.01)`
 
 will perform a likelhihood ratio test on the supplied models.
 
