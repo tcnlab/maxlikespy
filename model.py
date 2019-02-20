@@ -42,6 +42,7 @@ class Model(object):
             self.time_info.region_bin)
         self.num_trials = data['num_trials']
         self.swarm_params = data['swarm_params']
+        self.bounds = None
 
     def fit_params(self):
         """Fit model paramters using Particle Swarm Optimization then SciPy's minimize.

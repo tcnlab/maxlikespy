@@ -6,14 +6,14 @@ import os
 
 def plot_raster(spikes, time_info, condition=0, conditions=0):
     """Plots raster of binned spike data.
-    
+
     Parameters
     ----------
     spikes : ndarray
         Binned spike data for the given cell
     time_info : RegionInfo
         Object that holds timing information including the beginning and
-        end of the region of interest and the time bin. All in milliseconds.
+        end of the region of interest. All in milliseconds.
     condition : int
         The condition of interest in a single condition raster, if provided.
     conditions : dict
@@ -25,10 +25,12 @@ def plot_raster(spikes, time_info, condition=0, conditions=0):
     else:
         scatter_data = np.add(np.nonzero(spikes.T), time_info.region_low)
 
-    plt.scatter(scatter_data[0], scatter_data[1], c=[[0,0,0]], marker="o", s=1)
+    plt.scatter(scatter_data[0], scatter_data[1],
+                c=[[0, 0, 0]], marker="o", s=1)
+
 
 def plot_cat_fit(model, cell_num, spikes, subsample=0):
-    fig = plt.figure()    
+    fig = plt.figure()
     num_conditions = len(model.conditions)
     fig.suptitle("cell " + str(cell_num))
     fig_name = "results/figs/cell_%d_" + model.name + ".png"
@@ -38,10 +40,11 @@ def plot_cat_fit(model, cell_num, spikes, subsample=0):
         if condition:
             plt.subplot(2, num_conditions, condition + 1)
             plt.plot(model.region, model.expose_fit(condition), label="fit")
-            plt.plot(model.region, 
-                smooth_spikes(spikes, model.num_trials, subsample=subsample, condition=condition), label="spike_train")
+            plt.plot(model.region,
+                     smooth_spikes(spikes, model.num_trials, subsample=subsample, condition=condition), label="spike_train")
 
     fig.savefig(fig_name % cell_num)
+
 
 def plot_comparison(spikes, model_min, model_max, cell_no):
     """Given two models, produces a comparison figure and saves to disk.
@@ -58,18 +61,21 @@ def plot_comparison(spikes, model_min, model_max, cell_no):
     """
     fig = plt.figure()
     fig.suptitle("cell " + str(cell_no))
-    fig_name = os.getcwd() + "/results/figs/cell_%d_" + model_min.__class__.__name__ + "_" + model_max.__class__.__name__ + ".png"
+    fig_name = os.getcwd() + "/results/figs/cell_%d_" + model_min.__class__.__name__ + \
+        "_" + model_max.__class__.__name__ + ".png"
 
-    plt.subplot(2,1,1)
+    plt.subplot(2, 1, 1)
     plot_fit(model_min)
-    plt.plot(model_max.region, smooth_spikes(spikes, model_max.num_trials), label="spike_train")
+    plt.plot(model_max.region, smooth_spikes(
+        spikes, model_max.num_trials), label="spike_train")
     plot_fit(model_max)
     plt.legend(loc="upper right")
 
-    plt.subplot(2,1,2)
+    plt.subplot(2, 1, 2)
     plot_raster(model_max.spikes, model_max.time_info)
     plt.xlim(model_max.time_info.region_low, model_max.time_info.region_high)
     fig.savefig(fig_name % cell_no)
+
 
 def plot_fit(model):
     """Plot parameter fit over region of interest.
@@ -84,6 +90,7 @@ def plot_fit(model):
     #     plt.axhline(y=model.fit, color='r', linestyle='-')
     # else:
     plt.plot(model.region, model.expose_fit(), label=model.__class__.__name__)
+
 
 def smooth_spikes(spikes, num_trials, subsample=0, condition=0):
     """Applys a gaussian blur filter to spike data.
@@ -106,9 +113,3 @@ def smooth_spikes(spikes, num_trials, subsample=0, condition=0):
         avg_spikes = spikes / int(num_trials)
 
     return scipy.ndimage.filters.gaussian_filter(avg_spikes, 50)
-
-
-    
-
-
-

@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import matplotlib as mpl
-if os.environ.get('DISPLAY','') == '':
+if os.environ.get('DISPLAY', '') == '':
     print('no display found. Using non-interactive Agg backend')
     mpl.use('Agg')
 import time
@@ -66,6 +66,7 @@ class DataProcessor(object):
         self.num_trials = self._extract_num_trials()
         conditions = self._extract_conditions()
         if conditions is not None:
+            # this will fail if first cell doenst include all cond, hack
             self.num_conditions = len(np.unique(conditions[0]))
         self.conditions_dict = self._associate_conditions(conditions)
         # if time_info is not provided, a default window will be constructed
@@ -93,7 +94,7 @@ class DataProcessor(object):
                         max_time = t
                     if t < min_time:
                         min_time = t
-        self.time_info = RegionInfo(min_time, max_time, 1.0)
+        self.time_info = RegionInfo(min_time, max_time)
 
     def _extract_spikes(self):
         """Extracts spike times from data file.
@@ -107,13 +108,13 @@ class DataProcessor(object):
         spikes = {}
         if os.path.exists(self.path + "/spikes/"):
             for i in self.cell_range:
-                spike_path = self.path + '/spikes/%d.txt' % i
+                spike_path = self.path + '/spikes/%d.json' % i
                 with open(spike_path, 'rb') as f:
                     spikes[i] = np.array(json.load(f, encoding="bytes"))
         else:
             print("Spikes folder not found.")
             raise FileNotFoundError(
-                errno.ENOENT, os.strerror(errno.ENOENT), self.path+"/spikes/") 
+                errno.ENOENT, os.strerror(errno.ENOENT), self.path+"/spikes/")
         return spikes
 
     def _extract_num_trials(self):
@@ -126,15 +127,18 @@ class DataProcessor(object):
             trials of a given cell.
 
         """
-        if os.path.exists(self.path + "/number_of_trials.csv"):
-            return np.loadtxt(
-                self.path +
-                '/number_of_trials.csv',
-                delimiter=',',
-                dtype='int')
+        if os.path.exists(self.path + "/number_of_trials.json"):
+            with open(self.path + "/number_of_trials.json", 'rb') as f:
+                return np.array(json.load(f, encoding="bytes"))
         else:
-            print("number_of_trials.csv not found")
+            print("number_of_trials.json not found")
             return None
+        # if os.path.exists(self.path + "/number_of_trials.csv"):
+        #     return np.loadtxt(
+        #         self.path +
+        #         '/number_of_trials.csv',
+        #         delimiter=',',
+        #         dtype='int')
 
     def _extract_conditions(self):
         """Extracts trial conditions per cell per trial.
@@ -146,19 +150,19 @@ class DataProcessor(object):
             for the trial.
 
         """
-        #convert keys to int
-        if os.path.exists(self.path + "/conditions.txt"):
-            with open(self.path + "/conditions.txt", 'rb') as f:
-                
-                return {int(k):v for k,v in json.load(f, encoding="bytes").items()}
+        # convert keys to int
+        if os.path.exists(self.path + "/conditions.json"):
+            with open(self.path + "/conditions.json", 'rb') as f:
+
+                return {int(k): v for k, v in json.load(f, encoding="bytes").items()}
 
         else:
-            print("conditions.csv not found")
+            print("conditions.json not found")
             return None
 
     def extract_spike_info(self):
-        if os.path.exists(self.path+"/spike_info.txt"):
-            with open(self.path + "/spike_info.txt", 'rb') as f:
+        if os.path.exists(self.path+"/spike_info.json"):
+            with open(self.path + "/spike_info.json", 'rb') as f:
                 data = json.load(f)
             # return {int(k):v for k,v in data["position"].items()}
             return data
@@ -196,7 +200,7 @@ class DataProcessor(object):
         numpy.ndarray of int
             Array of dimension [Cells] × [Condition] × [Time].
 
-        """            
+        """
         spikes = self.spikes_binned
 
         if conditions is None:
@@ -219,15 +223,17 @@ class DataProcessor(object):
         region_info = self.time_info
         spikes_binned = {}
         for cell in self.spikes:
-            spikes_binned[cell] = np.zeros((self.num_trials[cell], region_info.total_bins))
+            spikes_binned[cell] = np.zeros(
+                (self.num_trials[cell], region_info.total_bins))
             for trial_index, trial in enumerate(self.spikes[cell]):
                 if type(trial) is float or type(trial) is int:
                     trial = [trial]
                 # if type(trial) is np.ndarray:
                 for value in trial:
                     if value < region_info.region_high and value >= region_info.region_low:
-                        spikes_binned[cell][trial_index][int(value - region_info.region_low)] = 1
-        
+                        spikes_binned[cell][trial_index][int(
+                            value - region_info.region_low)] = 1
+
         return spikes_binned
 
     def _associate_conditions(self, conditions):
@@ -245,7 +251,8 @@ class DataProcessor(object):
         else:
             conditions_dict = {}
             for cell in self.cell_range:
-                conditions_dict[cell] = {i+1:np.zeros([self.num_trials[cell]]) for i in range(self.num_conditions)}
+                conditions_dict[cell] = {
+                    i+1: np.zeros([self.num_trials[cell]]) for i in range(self.num_conditions)}
                 cond = conditions[cell][0:self.num_trials[cell]]
                 for trial, condition in enumerate(cond):
                     if condition:
