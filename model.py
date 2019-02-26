@@ -140,17 +140,6 @@ class Model(object):
         """
         raise NotImplementedError("Must override objective")
 
-    # def expose_fit(self):
-    #     """Returns instance of model function for plotting.
-
-    #     Returns
-    #     -------
-    #     ndarray
-    #         Representation of function value over interval with last fit values.
-
-    #     """
-    #     raise NotImplementedError("Must override plot_fit")
-
     def set_bounds(self, bounds):
         """Set parameter bounds for solver - required.
 

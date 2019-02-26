@@ -248,21 +248,21 @@ class CatTime(Model):
         ut, st, o = x[0], x[1], x[2]
         a1, a2, a3, a4 = x[3], x[4], x[5], x[6]
 
-        fun1 = a1 * np.exp(-np.power(self.t.T - ut, 2.) /
+        fun1 = a1 * np.exp(-np.power(self.t - ut, 2.) /
                            (2 * np.power(st, 2.)))
-        fun2 = a2 * np.exp(-np.power(self.t.T - ut, 2.) /
+        fun2 = a2 * np.exp(-np.power(self.t - ut, 2.) /
                            (2 * np.power(st, 2.)))
-        fun3 = a3 * np.exp(-np.power(self.t.T - ut, 2.) /
+        fun3 = a3 * np.exp(-np.power(self.t - ut, 2.) /
                            (2 * np.power(st, 2.)))
-        fun4 = a4 * np.exp(-np.power(self.t.T - ut, 2.) /
+        fun4 = a4 * np.exp(-np.power(self.t - ut, 2.) /
                            (2 * np.power(st, 2.)))
 
         return (c1*fun1 + c2*fun2 + c3*fun3 + c4*fun4)+o
 
     def objective(self, x):
         fun = self.model(x)
-        return np.sum(self.spikes.T * (-np.log(fun)) +
-                      (1 - self.spikes.T) * (-np.log(1 - (fun))))
+        return np.sum(self.spikes * (-np.log(fun)) +
+                      (1 - self.spikes) * (-np.log(1 - (fun))))
 
     def fit_params(self):
         super().fit_params()
