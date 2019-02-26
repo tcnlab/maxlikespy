@@ -54,7 +54,7 @@ class Model(object):
 
         """
         fit_pso, fun_pso = pso(
-            self.build_function,
+            self.objective,
             self.lb, 
             self.ub,
             phip=self.swarm_params["phip"],
@@ -66,7 +66,7 @@ class Model(object):
             f_ieqcons=self.pso_con
         )
         second_pass_res = minimize(
-            self.build_function,
+            self.objective,
             fit_pso,
             method='L-BFGS-B',
             bounds=self.bounds,
@@ -102,7 +102,7 @@ class Model(object):
         """
         raise NotImplementedError("Must override build_function")
 
-    def pso_con(self):
+    def pso_con(self, x):
         """Define constraint on coefficients for PSO
 
         Note
@@ -118,16 +118,38 @@ class Model(object):
         """
         raise NotImplementedError("Must override pso_con")
 
-    def expose_fit(self):
-        """Returns instance of model function for plotting.
+    def model(self):
+        """Defines functional form of model.
 
         Returns
         -------
         ndarray
-            Representation of function value over interval with last fit values.
+            Model function
 
         """
-        raise NotImplementedError("Must override plot_fit")
+        raise NotImplementedError("Must override model")
+
+    def objective(self):
+        """Defines objective function for minimization.
+
+        Returns
+        -------
+        ndarray
+            Objective function (log likelihood)
+
+        """
+        raise NotImplementedError("Must override objective")
+
+    # def expose_fit(self):
+    #     """Returns instance of model function for plotting.
+
+    #     Returns
+    #     -------
+    #     ndarray
+    #         Representation of function value over interval with last fit values.
+
+    #     """
+    #     raise NotImplementedError("Must override plot_fit")
 
     def set_bounds(self, bounds):
         """Set parameter bounds for solver - required.
@@ -144,4 +166,9 @@ class Model(object):
         self.bounds = [bounds[x] for x in self.param_names]
         self.lb = [bounds[x][0] for x in self.param_names]
         self.ub = [bounds[x][1] for x in self.param_names]
+
+    def set_info(self, name, data):
+        self.info[name] = data
+
+        return True
 

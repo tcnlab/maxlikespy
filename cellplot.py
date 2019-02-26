@@ -33,7 +33,7 @@ def plot_cat_fit(model, cell_num, spikes, subsample=0):
     fig = plt.figure()
     num_conditions = len(model.conditions)
     fig.suptitle("cell " + str(cell_num))
-    fig_name = "results/figs/cell_%d_" + model.name + ".png"
+    fig_name = "results/figs/cell_%d_" + model.__class__.__name__ + ".png"
     plt.legend(loc="upper left")
 
     for condition in model.conditions:
@@ -86,10 +86,13 @@ def plot_fit(model):
         Model desired for plotting.
 
     """
-    # if model.__class__.__name__ == "Const"
-    #     plt.axhline(y=model.fit, color='r', linestyle='-')
-    # else:
-    plt.plot(model.region, model.expose_fit(), label=model.__class__.__name__)
+    fit = model.model(model.fit)
+    try:
+        plt.plot(model.region, fit, label=model.__class__.__name__)
+    except:
+        if fit.size == 1:
+            plt.plot(model.region, np.full(model.t.shape, fit), label=model.__class__.__name__ )
+
 
 
 def smooth_spikes(spikes, num_trials, subsample=0, condition=0):

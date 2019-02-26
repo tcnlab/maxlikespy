@@ -52,8 +52,6 @@ class AnalysisPipeline(object):
 
     def __init__(self, cell_range, data_processor, models, subsample=0, swarm_params=None):
         self.time_start = time.time()
-        # self.cell_range = cell_range[:]
-        # self.cell_range[1] += 1
         self.cell_range = cell_range
         self.data_processor = data_processor
         self.subsample = subsample
@@ -88,8 +86,6 @@ class AnalysisPipeline(object):
                 if condition_data:
                     conditions = {cond: condition_data[cell][cond][sampled_trials]
                                   for cond in condition_data[cell]}
-                # self.conditions[cond][sampled_trials]
-
             else:
                 num_trials = self.data_processor.num_trials[cell]
                 spikes_binned = self.data_processor.spikes_binned[cell]
@@ -159,6 +155,15 @@ class AnalysisPipeline(object):
 
         return True
 
+    def set_model_info(self, model, name, data):
+        for cell in self.cell_range:
+            if model in self.model_dict:
+                self.model_dict[model][cell].set_info(name, data)
+            else:
+                raise ValueError("model does not match supplied models")
+
+        return True
+
     def fit_all_models(self, iterations):
         """Fits parameters for all models then saves to disk.
 
@@ -186,8 +191,8 @@ class AnalysisPipeline(object):
                 cell_fits[cell][model_instance.__class__.__name__] = param_dict
                 cell_lls[cell][model_instance.__class__.__name__] = model_instance.fun
 
-            util.save_cell_data(cell_fits, "cell_fits", cell)
-            util.save_cell_data(cell_lls, "log_likelihoods", cell)
+            util.save_data(cell_fits, "cell_fits", cell=cell)
+            util.save_data(cell_lls, "log_likelihoods", cell=cell)
 
         return True
 
@@ -195,11 +200,6 @@ class AnalysisPipeline(object):
         """Fit given model parameters.
 
         """
-        # constant models at some point got stuck in "improvement" loop
-        # if isinstance(model, models.Const):
-        #     model.fit_params()
-        # else:
-        #     self._iterate_fits(model, iterations)
         self._iterate_fits(model, iterations)
         return model
 
@@ -250,7 +250,7 @@ class AnalysisPipeline(object):
         ))
         outcome_dict = {cell:
                         {max_model.__class__.__name__+"_"+min_model.__class__.__name__: outcome}}
-        util.save_cell_data(data=outcome_dict,
+        util.save_data(data=outcome_dict,
                             filename="model_comparisons",
                             cell=cell)
         print(outcome)
@@ -264,15 +264,6 @@ class AnalysisPipeline(object):
         plt.show()
 
         return outcome
-
-    def _get_lls(self, model_min, model_max, cell):
-        min_model = self.model_dict[model_min][cell]
-        max_model = self.model_dict[model_max][cell]
-        lls = {cell: {min_model.__class__.__name__: min_model.fun,
-                      max_model.__class__.__name__: max_model.fun}}
-        util.save_cell_data(lls, filename="log_likelihoods", cell=cell)
-
-        return [min_model.fun, max_model.fun]
 
     def compare_models(self, model_min, model_max, p_value):
         """Runs likelihood ratio test on likelihoods from given nested model parameters then saves to disk.
@@ -291,10 +282,6 @@ class AnalysisPipeline(object):
             model_min, model_max, cell, p_value) for cell in self.cell_range}
 
         return True
-        # lls = {cell:self._get_lls(model_min, model_max, cell) for cell in self.cell_range}
-
-        # self._save_data(data=outcomes, filename="model_comparisons")
-        # self._save_data(data=lls, filename="log_likelihoods")
 
     def lr_test(self, model_min, model_max, p_threshold):
         """Performs likelihood ratio test.

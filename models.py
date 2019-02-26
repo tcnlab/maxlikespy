@@ -27,15 +27,17 @@ class Time(Model):
         self.region = self.t
         self.param_names = ["a_1", "ut", "st", "a_0"]
 
-    def build_function(self, x):
-        # pso stores params in vector x
+    def objective(self, x):
+        fun = self.model(x)
+        return np.sum(self.spikes * (-np.log(fun)) +
+                      (1 - self.spikes) * (-np.log(1 - (fun))))
+
+    def model(self, x):
         a, ut, st, o = x[0], x[1], x[2], x[3]
 
         self.function = (
             (a * np.exp(-np.power(self.t - ut, 2.) / (2 * np.power(st, 2.)))) + o)
-        res = np.sum(self.spikes * (-np.log(self.function)) +
-                     (1 - self.spikes) * (-np.log(1 - (self.function))))
-        return res
+        return self.function
 
     def fit_params(self):
         super().fit_params()
@@ -43,18 +45,6 @@ class Time(Model):
 
     def pso_con(self, x):
         return 1 - (x[0] + x[3])
-
-    def expose_fit(self):
-        if self.fit is None:
-            raise ValueError("fit not yet computed")
-        else:
-            self.a = self.fit[0]
-            self.ut = self.fit[1]
-            self.st = self.fit[2]
-            self.o = self.fit[3]
-        fun = (self.a * np.exp(-np.power(self.t - self.ut, 2.) /
-                               (2 * np.power(self.st, 2.)))) + self.o
-        return fun
 
 
 class Const(Model):
@@ -76,10 +66,14 @@ class Const(Model):
         self.region = self.t
         self.param_names = ["a_0"]
 
-    def build_function(self, x):
+    def model(self, x):
         o = x[0]
-        return np.sum(self.spikes * (-np.log(o)) +
-                      (1 - self.spikes) * (-np.log(1 - (o))))
+        return o
+
+    def objective(self, x):
+        fun = self.model(x)
+        return np.sum(self.spikes * (-np.log(fun)) +
+                      (1 - self.spikes) * (-np.log(1 - (fun))))
 
     def fit_params(self):
         super().fit_params()
@@ -88,12 +82,6 @@ class Const(Model):
 
     def pso_con(self, x):
         return 1 - x
-
-    def expose_fit(self):
-        if self.fit is None:
-            raise ValueError("fit not yet computed")
-
-        return np.full(self.t.shape, self.fit)
 
 
 class CatSetTime(Model):
@@ -130,39 +118,31 @@ class CatSetTime(Model):
 
     """
 
-    def __init__(
-            self,
-            spikes,
-            time_info,
-            bounds,
-            time_params,
-            conditions,
-            pairs,
-            num_trials):
-        super().__init__(spikes, time_info, bounds)
-        self.pairs = pairs
-        self.t = np.tile(self.t, (num_trials, 1))
-        self.conditions = conditions
-        self.ut = time_params[1]
-        self.st = time_params[2]
-        self.a1 = None
-        self.a2 = None
-        self.o = None
+    def __init__(self, data):
+        super().__init__(data)
+        self.region = self.t
+        self.t = np.tile(self.t, (data["num_trials"], 1))
+        self.conditions = data["conditions"]
+        self.param_names = ["ut", "st", "a_0", "a_1", "a_2"]
+        self.spikes = data["spikes"]
+        self.info = {}
 
-    def build_function(self, x):
-        ut, st, o = self.ut, self.st, x[0]
-        a1, a2 = x[1], x[2]
-        pair_1 = self.pairs[0]
-        pair_2 = self.pairs[1]
+    def model(self, x):
+        pairs = self.info["pairs"]
+        ut, st, a_0 = x[0], x[1], x[2]
+        a_1, a_2 = x[3], x[4]
+        pair_1 = pairs[0]
+        pair_2 = pairs[1]
         c1 = self.conditions[pair_1[0]] + self.conditions[pair_1[1]]
         c2 = self.conditions[pair_2[0]] + self.conditions[pair_2[1]]
 
-        big_t = (a1 * c1 * np.exp(-np.power(self.t.T - ut, 2.) / (2 * np.power(st, 2.)))) + \
-            (a2 * c2 * np.exp(-np.power(self.t.T - ut, 2.) / (2 * np.power(st, 2.))))
+        return ((a_1 * c1 * np.exp(-np.power(self.t - ut, 2.) / (2 * np.power(st, 2.)))) + \
+            (a_2 * c2 * np.exp(-np.power(self.t - ut, 2.) / (2 * np.power(st, 2.))))) + a_0
 
-        result = np.sum(self.spikes * (-np.log(o + big_t.T)) +
-                        (1 - self.spikes) * (-np.log(1 - (o + big_t.T))))
-        return result
+    def objective(self, x):
+        fun = self.model(x)
+        return np.sum((self.spikes * (-np.log(fun)) +
+                        (1 - self.spikes) * (-np.log(1 - (fun)))))
 
     def fit_params(self):
         super().fit_params()
@@ -172,18 +152,9 @@ class CatSetTime(Model):
 
         return self.fit, self.fun
 
-    def plot_fit(self, fit):
-        ut, st, o = self.ut, self.st, self.o
-        a1, a2 = self.a1, self.a2
-        t = np.linspace(
-            self.time_info.region_low,
-            self.time_info.region_high,
-            self.total_bins)
-        fun = (a1 * np.exp(-np.power(t - ut, 2.) / (2 * np.power(st, 2.))) + (
-            a2 * np.exp(-np.power(t - ut, 2) / (2 * np.power(st, 2.))))) + o
+    def pso_con(self, x):
 
-        plt.plot(t, fun)
-
+        return 1 - (x[2] + x[3] + x[4])
 
 class CatTime(Model):
 
@@ -225,7 +196,6 @@ class CatTime(Model):
 
     def __init__(self, data):
         super().__init__(data)
-        self.name = "category_time"
         self.region = self.t
         # t ends up needing to include trial dimension due to condition setup
         self.t = np.tile(self.t, (data["num_trials"], 1))
@@ -240,7 +210,36 @@ class CatTime(Model):
         # bounds = (mean_bounds, (0.01, 5.0), (10**-10, 1 / n), (0.001, 1 / n), (0.001, 1 / n), (0.001, 1 / n), (0.001, 1 / n),)
         # self.set_bounds(bounds)
 
-    def build_function(self, x):
+    # def build_function(self, x):
+    #     c1 = self.conditions[1]
+    #     c2 = self.conditions[2]
+    #     c3 = self.conditions[3]
+    #     c4 = self.conditions[4]
+
+    #     ut, st, o = x[0], x[1], x[2]
+    #     a1, a2, a3, a4 = x[3], x[4], x[5], x[6]
+
+    #     # big_t = (a1 * c1 * np.exp(-np.power(self.t.T - ut, 2.) / (2 * np.power(st, 2.)))) + (
+    #     #     a2 * c2 * np.exp(-np.power(self.t.T - ut, 2.) / (2 * np.power(st, 2.)))) + (
+    #     #         a3 * c3 * np.exp(-np.power(self.t.T - ut, 2.) / (2 * np.power(st, 2.)))) + (
+    #     #             a4 * c4 * np.exp(-np.power(self.t.T - ut, 2.) / (2 * np.power(st, 2.))))
+
+    #     fun1 = a1 * np.exp(-np.power(self.t.T - ut, 2.) /
+    #                        (2 * np.power(st, 2.)))
+    #     fun2 = a2 * np.exp(-np.power(self.t.T - ut, 2.) /
+    #                        (2 * np.power(st, 2.)))
+    #     fun3 = a3 * np.exp(-np.power(self.t.T - ut, 2.) /
+    #                        (2 * np.power(st, 2.)))
+    #     fun4 = a4 * np.exp(-np.power(self.t.T - ut, 2.) /
+    #                        (2 * np.power(st, 2.)))
+
+    #     inside_sum = (self.spikes.T * (-np.log(o + c1*fun1 + c2*fun2 + c3*fun3 + c4*fun4)) +
+    #                   (1 - self.spikes.T) * (-np.log(1 - (o + c1*fun1 + c2*fun2 + c3*fun3 + c4*fun4))))
+    #     objective = np.sum(inside_sum)
+
+    #     return objective
+
+    def model(self, x):
         c1 = self.conditions[1]
         c2 = self.conditions[2]
         c3 = self.conditions[3]
@@ -248,11 +247,6 @@ class CatTime(Model):
 
         ut, st, o = x[0], x[1], x[2]
         a1, a2, a3, a4 = x[3], x[4], x[5], x[6]
-
-        # big_t = (a1 * c1 * np.exp(-np.power(self.t.T - ut, 2.) / (2 * np.power(st, 2.)))) + (
-        #     a2 * c2 * np.exp(-np.power(self.t.T - ut, 2.) / (2 * np.power(st, 2.)))) + (
-        #         a3 * c3 * np.exp(-np.power(self.t.T - ut, 2.) / (2 * np.power(st, 2.)))) + (
-        #             a4 * c4 * np.exp(-np.power(self.t.T - ut, 2.) / (2 * np.power(st, 2.))))
 
         fun1 = a1 * np.exp(-np.power(self.t.T - ut, 2.) /
                            (2 * np.power(st, 2.)))
@@ -263,11 +257,12 @@ class CatTime(Model):
         fun4 = a4 * np.exp(-np.power(self.t.T - ut, 2.) /
                            (2 * np.power(st, 2.)))
 
-        inside_sum = (self.spikes.T * (-np.log(o + c1*fun1 + c2*fun2 + c3*fun3 + c4*fun4)) +
-                      (1 - self.spikes.T) * (-np.log(1 - (o + c1*fun1 + c2*fun2 + c3*fun3 + c4*fun4))))
-        objective = np.sum(inside_sum)
+        return (c1*fun1 + c2*fun2 + c3*fun3 + c4*fun4)+o
 
-        return objective
+    def objective(self, x):
+        fun = self.model(x)
+        return np.sum(self.spikes.T * (-np.log(fun)) +
+                      (1 - self.spikes.T) * (-np.log(1 - (fun))))
 
     def fit_params(self):
         super().fit_params()
@@ -287,25 +282,6 @@ class CatTime(Model):
 
         return 1 - (x[3] + x[4] + x[2] + x[5] + x[6])
 
-    def expose_fit(self, category=0):
-        ut, st, o = self.fit[0], self.fit[1], self.fit[2]
-        cat_coefs = [self.fit[3], self.fit[4], self.fit[5], self.fit[6]]
-        t = np.linspace(
-            self.time_info.region_low,
-            self.time_info.region_high,
-            self.time_info.total_bins
-        )
-        if category:
-            fun = (cat_coefs[category-1] *
-                   np.exp(-np.power(t - ut, 2.) / (2 * np.power(st, 2.))))
-        else:
-            # dont use this
-            fun = (cat_coefs[0] * np.exp(-np.power(t - ut, 2.) / (2 * np.power(st, 2.)))) + (
-                cat_coefs[1] * np.exp(-np.power(t - ut, 2.) / (2 * np.power(st, 2.)))) + (
-                    cat_coefs[2] * np.exp(-np.power(t - ut, 2.) / (2 * np.power(st, 2.)))) + (
-                        cat_coefs[3] * np.exp(-np.power(t - ut, 2.) / (2 * np.power(st, 2.)))) + o
-
-        return fun
 
 
 class ConstCat(Model):

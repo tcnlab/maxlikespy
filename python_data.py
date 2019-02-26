@@ -59,8 +59,6 @@ class DataProcessor(object):
 
     def __init__(self, path, cell_range, time_info=None):
         self.path = path
-        # self.cell_range = cell_range[:]
-        # self.cell_range[1] += 1
         self.cell_range = cell_range
         self.spikes = self._extract_spikes()
         self.num_trials = self._extract_num_trials()
@@ -72,7 +70,7 @@ class DataProcessor(object):
         # if time_info is not provided, a default window will be constructed
         # based off the min and max values found in the data
         if time_info is None:
-            self._set_default_time()
+            self.time_info = self._set_default_time()
         else:
             self.time_info = time_info
 
@@ -94,7 +92,7 @@ class DataProcessor(object):
                         max_time = t
                     if t < min_time:
                         min_time = t
-        self.time_info = RegionInfo(min_time, max_time)
+        return RegionInfo(min_time, max_time)
 
     def _extract_spikes(self):
         """Extracts spike times from data file.
@@ -131,14 +129,7 @@ class DataProcessor(object):
             with open(self.path + "/number_of_trials.json", 'rb') as f:
                 return np.array(json.load(f, encoding="bytes"))
         else:
-            print("number_of_trials.json not found")
-            return None
-        # if os.path.exists(self.path + "/number_of_trials.csv"):
-        #     return np.loadtxt(
-        #         self.path +
-        #         '/number_of_trials.csv',
-        #         delimiter=',',
-        #         dtype='int')
+            raise FileNotFoundError("number_of_trials.json not found")
 
     def _extract_conditions(self):
         """Extracts trial conditions per cell per trial.
@@ -164,7 +155,7 @@ class DataProcessor(object):
         if os.path.exists(self.path+"/spike_info.json"):
             with open(self.path + "/spike_info.json", 'rb') as f:
                 data = json.load(f)
-            # return {int(k):v for k,v in data["position"].items()}
+
             return data
 
         else:
@@ -212,7 +203,7 @@ class DataProcessor(object):
                 for condition in range(self.num_conditions):
                     summed_spikes_condition[cell][condition+1] = {}
                     summed_spikes_condition[cell][condition+1] = np.sum(
-                        spikes[cell].T * self.conditions_dict[cell][condition + 1], 1)
+                        spikes[cell].T * self.conditions_dict[cell][condition + 1].T, 1)
 
             return summed_spikes_condition
 
@@ -228,7 +219,6 @@ class DataProcessor(object):
             for trial_index, trial in enumerate(self.spikes[cell]):
                 if type(trial) is float or type(trial) is int:
                     trial = [trial]
-                # if type(trial) is np.ndarray:
                 for value in trial:
                     if value < region_info.region_high and value >= region_info.region_low:
                         spikes_binned[cell][trial_index][int(
@@ -252,15 +242,16 @@ class DataProcessor(object):
             conditions_dict = {}
             for cell in self.cell_range:
                 conditions_dict[cell] = {
-                    i+1: np.zeros([self.num_trials[cell]]) for i in range(self.num_conditions)}
+                    i+1: np.zeros((self.num_trials[cell], 1)) for i in range(self.num_conditions)}
                 cond = conditions[cell][0:self.num_trials[cell]]
                 for trial, condition in enumerate(cond):
                     if condition:
                         conditions_dict[cell][condition][trial] = 1
             return conditions_dict
 
-    def save_spikes_binned(self):
-        """Saves binned spike data to disk.
+    def save_attribute(self, attribute, filename, path=""):
+        """Saves data_processor attribute to disk.
 
         """
-        np.save("time_spikes_binned", self.spikes_binned)
+        with open((os.getcwd() + path + "/{0}.json").format(filename), 'w') as f:
+            json.dump(attribute, f)

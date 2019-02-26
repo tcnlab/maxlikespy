@@ -1,4 +1,9 @@
 #!/bin/bash -l
+#$ -l h_rt=140:00:00
+#$ -P ecog-eeg
+#$ -pe omp 1
+
+
 module load python3
 
 touch results/cell_fits.txt
