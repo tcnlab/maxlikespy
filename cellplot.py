@@ -35,12 +35,16 @@ def plot_cat_fit(model, cell_num, spikes, subsample=0):
     fig.suptitle("cell " + str(cell_num))
     fig_name = "results/figs/cell_%d_" + model.__class__.__name__ + ".png"
     plt.legend(loc="upper left")
+    window = np.arange(
+            model.time_info.region_low,
+            model.time_info.region_high,
+            model.time_info.region_bin)
 
     for condition in model.conditions:
         if condition:
             plt.subplot(2, num_conditions, condition + 1)
-            plt.plot(model.region, model.expose_fit(condition), label="fit")
-            plt.plot(model.region,
+            plt.plot(window, model.expose_fit(condition), label="fit")
+            plt.plot(window,
                      smooth_spikes(spikes, model.num_trials, subsample=subsample, condition=condition), label="spike_train")
 
     fig.savefig(fig_name % cell_num)
@@ -59,6 +63,10 @@ def plot_comparison(spikes, model_min, model_max, cell_no):
         Numeric label of cell, used for plot title.
 
     """
+    window = np.arange(
+        model_min.time_info.region_low,
+        model_min.time_info.region_high,
+        model_min.time_info.region_bin)
     fig = plt.figure()
     fig.suptitle("cell " + str(cell_no))
     fig_name = os.getcwd() + "/results/figs/cell_%d_" + model_min.__class__.__name__ + \
@@ -66,7 +74,7 @@ def plot_comparison(spikes, model_min, model_max, cell_no):
 
     plt.subplot(2, 1, 1)
     plot_fit(model_min)
-    plt.plot(model_max.region, smooth_spikes(
+    plt.plot(window, smooth_spikes(
         spikes, model_max.num_trials), label="spike_train")
     plot_fit(model_max)
     plt.legend(loc="upper right")
@@ -86,12 +94,16 @@ def plot_fit(model):
         Model desired for plotting.
 
     """
+    window = np.arange(
+        model.time_info.region_low,
+        model.time_info.region_high,
+        model.time_info.region_bin)
     fit = model.model(model.fit)
     try:
-        plt.plot(model.region, fit, label=model.__class__.__name__)
+        plt.plot(window, fit, label=model.__class__.__name__)
     except:
         if fit.size == 1:
-            plt.plot(model.region, np.full(model.t.shape, fit), label=model.__class__.__name__ )
+            plt.plot(window, np.full(model.t.shape, fit), label=model.__class__.__name__ )
 
 
 

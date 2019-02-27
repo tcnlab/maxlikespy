@@ -16,15 +16,12 @@ class Time(Model):
         Integer signifying the number of model parameters.
     spikes : dict     
         Dict containing binned spike data for current cell.
-    region : ndarray
-        Copy of "t" array used in plotting. May be unneeded.
 
     """
 
     def __init__(self, data):
         super().__init__(data)
         self.spikes = data['spikes']
-        self.region = self.t
         self.param_names = ["a_1", "ut", "st", "a_0"]
 
     def objective(self, x):
@@ -63,7 +60,6 @@ class Const(Model):
     def __init__(self, data):
         super().__init__(data)
         self.spikes = data['spikes']
-        self.region = self.t
         self.param_names = ["a_0"]
 
     def model(self, x):
@@ -120,7 +116,6 @@ class CatSetTime(Model):
 
     def __init__(self, data):
         super().__init__(data)
-        self.region = self.t
         self.t = np.tile(self.t, (data["num_trials"], 1))
         self.conditions = data["conditions"]
         self.param_names = ["ut", "st", "a_0", "a_1", "a_2"]
@@ -196,7 +191,6 @@ class CatTime(Model):
 
     def __init__(self, data):
         super().__init__(data)
-        self.region = self.t
         # t ends up needing to include trial dimension due to condition setup
         self.t = np.tile(self.t, (data["num_trials"], 1))
         self.conditions = data["conditions"]
@@ -495,7 +489,6 @@ class BoxCategories(Model):
         #     (10**-10,  1 / n))
 
         # self.set_bounds(bounds)
-        self.region = self.x_pos
 
     def build_function(self, x):
         a1, mu_x1, sig_x1 = x[0], x[1], x[2]
@@ -581,8 +574,6 @@ class TimePos(Model):
         Integer signifying the number of model parameters.
     spikes : dict     
         Dict containing binned spike data for current cell.
-    region : ndarray
-        Copy of "t" array used in plotting. May be unneeded.
 
     """
 
@@ -592,7 +583,6 @@ class TimePos(Model):
         self.position = data['spike_info']['position']
         self.name = "time"
         self.num_params = 5
-        self.region = self.t
 
     def build_function(self, x):
         # pso stores params in vector x
