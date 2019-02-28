@@ -6,6 +6,8 @@
 
 module load python3
 
+mkdir results
+mkdir results/figs
 touch results/cell_fits.txt
 touch results/model_comparisons.txt
 touch results/log_likelihoods.txt
