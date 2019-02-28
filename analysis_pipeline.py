@@ -94,7 +94,7 @@ class AnalysisPipeline(object):
 
             for model in models_to_fit:
 
-                # data passed here is manually selected by what models need
+                # data passed here is determined by what models need
                 model_data = {}
                 model_data['spikes'] = spikes_binned
                 model_data['time_info'] = self.data_processor.time_info

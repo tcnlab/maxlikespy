@@ -127,4 +127,4 @@ def smooth_spikes(spikes, num_trials, subsample=0, condition=0):
     else:
         avg_spikes = spikes / int(num_trials)
 
-    return scipy.ndimage.filters.gaussian_filter(avg_spikes, 50)
+    return scipy.ndimage.filters.gaussian_filter(avg_spikes, 100)
