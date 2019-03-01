@@ -142,7 +142,7 @@ def run_script(cell_range):
 
 
     # path_to_data = '/Users/stevecharczynski/workspace/data/cromer'
-    # path_to_data = "/usr3/bustaff/scharcz/workspace/cromer/"
+    # # path_to_data = "/usr3/bustaff/scharcz/workspace/cromer/"
     # time_info = RegionInfo(400, 2000)
     # data_processor = DataProcessor(
     #     path_to_data, cell_range, time_info=time_info)
@@ -172,7 +172,7 @@ def run_script(cell_range):
     # # bounds_cat = ((0,2400), (10, 5000), (10**-10, 1 / n), (0, 1 / n),(0, 1 / n), (0, 1 / n), (0, 1 / n))
     # # bounds= ((0, 1 / n), (0,2400), (10, 5000), (10**-10, 1 / n))
     # pipeline = AnalysisPipeline(cell_range, data_processor, [
-    #                             "Time","CatSetTime"], 0, swarm_params)
+    #                             "CatSetTime", "Time"], 0, swarm_params)
     # pipeline.set_model_bounds("Time", bounds_t)
     # pipeline.set_model_bounds("CatSetTime", bounds_cat)
     # pipeline.set_model_info("CatSetTime", "pairs", [(1,2), (3,4)])
@@ -212,6 +212,7 @@ def run_script(cell_range):
     # util.collect_data(cell_range, "cell_fits")
 
 
+# run_script(range(67, 68))
 if __name__ == "__main__":
     cell_range = sys.argv[-2:]
     cell_range = list(map(int, cell_range))
