@@ -8,9 +8,9 @@ module load python3
 
 mkdir results
 mkdir results/figs
-touch results/cell_fits.txt
-touch results/model_comparisons.txt
-touch results/log_likelihoods.txt
+touch results/cell_fits.json
+touch results/model_comparisons.json
+touch results/log_likelihoods.json
 
 first = $1
 last = $2
