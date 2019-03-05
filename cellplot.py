@@ -23,7 +23,7 @@ def plot_raster(spikes, time_info, condition=0, conditions=0):
     if condition:
         scatter_data = np.nonzero(spikes.T * conditions[condition])
     else:
-        scatter_data = np.add(np.nonzero(spikes.T), time_info.region_low)
+        scatter_data = np.add(np.nonzero(spikes.T), time_info[0])
 
     plt.scatter(scatter_data[0], scatter_data[1],
                 c=[[0, 0, 0]], marker="o", s=1)
@@ -36,9 +36,9 @@ def plot_cat_fit(model, cell_num, spikes, subsample=0):
     fig_name = "results/figs/cell_%d_" + model.__class__.__name__ + ".png"
     plt.legend(loc="upper left")
     window = np.arange(
-            model.time_info.region_low,
-            model.time_info.region_high,
-            model.time_info.region_bin)
+            model.time_info[0],
+            model.time_info[1],
+            1)
 
     for condition in model.conditions:
         if condition:
@@ -64,9 +64,9 @@ def plot_comparison(spikes, model_min, model_max, cell_no):
 
     """
     window = np.arange(
-        model_min.time_info.region_low,
-        model_min.time_info.region_high,
-        model_min.time_info.region_bin)
+        model_min.time_info[0],
+        model_min.time_info[1],
+        1)
     fig = plt.figure()
     fig.suptitle("cell " + str(cell_no))
     fig_name = os.getcwd() + "/results/figs/cell_%d_" + model_min.__class__.__name__ + \
@@ -81,7 +81,7 @@ def plot_comparison(spikes, model_min, model_max, cell_no):
 
     plt.subplot(2, 1, 2)
     plot_raster(model_max.spikes, model_max.time_info)
-    plt.xlim(model_max.time_info.region_low, model_max.time_info.region_high)
+    plt.xlim(model_max.time_info[0], model_max.time_info[1])
     fig.savefig(fig_name % cell_no)
 
 
@@ -95,9 +95,9 @@ def plot_fit(model):
 
     """
     window = np.arange(
-        model.time_info.region_low,
-        model.time_info.region_high,
-        model.time_info.region_bin)
+        model.time_info[0],
+        model.time_info[1],
+        1)
     fit = model.model(model.fit)
     try:
         plt.plot(window, fit, label=model.__class__.__name__)

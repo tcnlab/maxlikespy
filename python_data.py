@@ -92,7 +92,7 @@ class DataProcessor(object):
                         max_time = t
                     if t < min_time:
                         min_time = t
-        return RegionInfo(min_time, max_time)
+        return [min_time, max_time]
 
     def _extract_spikes(self):
         """Extracts spike times from data file.
@@ -211,18 +211,19 @@ class DataProcessor(object):
         """Bins spikes within the given time range into 1 ms bins.
 
         """
-        region_info = self.time_info
+        time_low, time_high = self.time_info[0], self.time_info[1]
+        total_bins = time_high - time_low
         spikes_binned = {}
         for cell in self.spikes:
             spikes_binned[cell] = np.zeros(
-                (self.num_trials[cell], region_info.total_bins))
+                (self.num_trials[cell], total_bins))
             for trial_index, trial in enumerate(self.spikes[cell]):
                 if type(trial) is float or type(trial) is int:
                     trial = [trial]
                 for value in trial:
-                    if value < region_info.region_high and value >= region_info.region_low:
+                    if value <  time_high and value >= time_low:
                         spikes_binned[cell][trial_index][int(
-                            value - region_info.region_low)] = 1
+                            value - time_low)] = 1
 
         return spikes_binned
 
