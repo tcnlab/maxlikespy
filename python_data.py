@@ -6,7 +6,6 @@ if os.environ.get('DISPLAY', '') == '':
     mpl.use('Agg')
 import time
 import math
-from region_info import RegionInfo
 import sys
 import json
 import errno
