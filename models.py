@@ -23,6 +23,7 @@ class Time(Model):
         super().__init__(data)
         self.spikes = data['spikes']
         self.param_names = ["a_1", "ut", "st", "a_0"]
+        self.x0 = [0.1, 500, 500, 0.1]
 
     def objective(self, x):
         fun = self.model(x)
@@ -61,6 +62,7 @@ class Const(Model):
         super().__init__(data)
         self.spikes = data['spikes']
         self.param_names = ["a_0"]
+        self.x0 = [0.1]
 
     def model(self, x):
         o = x[0]
@@ -68,8 +70,9 @@ class Const(Model):
 
     def objective(self, x):
         fun = self.model(x)
-        return np.sum(self.spikes * (-np.log(fun)) +
-                      (1 - self.spikes) * (-np.log(1 - (fun))))
+        obj = (np.sum(self.spikes * (-np.log(fun)) +
+                      (1 - self.spikes) * (-np.log(1 - (fun)))))
+        return obj
 
     def fit_params(self):
         super().fit_params()

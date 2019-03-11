@@ -28,6 +28,10 @@ def plot_raster(spikes, time_info, condition=0, conditions=0):
     plt.scatter(scatter_data[0], scatter_data[1],
                 c=[[0, 0, 0]], marker="o", s=1)
 
+def plot_spike_train(spike_train):
+
+    plt.plot(smooth_spikes(spike_train))
+
 
 def plot_cat_fit(model, cell_num, spikes, subsample=0):
     fig = plt.figure()
@@ -107,7 +111,7 @@ def plot_fit(model):
 
 
 
-def smooth_spikes(spikes, num_trials, subsample=0, condition=0):
+def smooth_spikes(spikes, num_trials=0, subsample=0, condition=0):
     """Applys a gaussian blur filter to spike data.
 
     Parameters
@@ -120,6 +124,9 @@ def smooth_spikes(spikes, num_trials, subsample=0, condition=0):
         Number signifying the percentage of trials to be used, 0 will use all trials.
 
     """
+    if not num_trials:
+        return scipy.ndimage.filters.gaussian_filter(spikes, 100)
+
     if subsample:
         num_trials = int(num_trials / subsample)
     if condition:
