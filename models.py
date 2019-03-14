@@ -1,6 +1,8 @@
 import numpy as np
 from pyswarm import pso
 from model import Model
+import autograd.numpy as np
+
 
 
 class Time(Model):
@@ -23,12 +25,15 @@ class Time(Model):
         super().__init__(data)
         self.spikes = data['spikes']
         self.param_names = ["a_1", "ut", "st", "a_0"]
-        self.x0 = [0.1, 500, 500, 0.1]
+        self.x0 = [0.001, 100, 100, 0.001]
+
 
     def objective(self, x):
         fun = self.model(x)
-        return np.sum(self.spikes * (-np.log(fun)) +
+        obj = np.sum(self.spikes * (-np.log(fun)) +
                       (1 - self.spikes) * (-np.log(1 - (fun))))
+        
+        return obj
 
     def model(self, x):
         a, ut, st, o = x[0], x[1], x[2], x[3]
@@ -66,6 +71,7 @@ class Const(Model):
 
     def model(self, x):
         o = x[0]
+        # print(x)
         return o
 
     def objective(self, x):

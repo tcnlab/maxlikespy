@@ -1,7 +1,54 @@
 import numpy as np
 from pyswarm import pso
 from scipy.optimize import minimize
+import autograd
+from scipy.optimize import basinhopping
 
+
+class RandomDisplacementBounds(object):
+    """random displacement with bounds"""
+    def __init__(self, xmin, xmax, stepsize=1000):
+        self.xmin = xmin
+        self.xmax = xmax
+        self.stepsize = stepsize
+
+    def __call__(self, x):
+        """take a random step but ensure the new position is within the bounds"""
+
+        min_step = np.maximum(self.xmin - x, -self.stepsize)
+        max_step = np.minimum(self.xmax - x, self.stepsize)
+        print("min_step {0}".format(min_step))
+        print("max_step {0}".format(max_step))
+        random_step = np.random.uniform(low=min_step, high=max_step, size=x.shape)
+        # random_step = np.random.normal((min_step+max_step)/2, self.stepsize, size=x.shape)
+
+        print("random_step {0}".format(random_step))
+        print("x is {0}".format(x))
+        xnew = x + random_step
+        # if x <= self.xmin:
+        #     xnew = self.xmin
+        # elif x >= self.xmax:
+        #     xnew = self.xmax
+        # else:       
+        #     while True:
+        #         # this could be done in a much more clever way, but it will work for example purposes
+        #         xnew = x + np.random.uniform(-self.stepsize, self.stepsize, np.shape(x))
+        #         if np.all(xnew < self.xmax) and np.all(xnew > self.xmin):
+        #             break
+        
+        print("new step is {0}".format(xnew))
+
+        return xnew
+
+class MyBounds(object):
+    def __init__(self, xmax, xmin):
+        self.xmax = np.array(xmax)
+        self.xmin = np.array(xmin)
+    def __call__(self, **kwargs):
+        x = kwargs["x_new"]
+        tmax = bool(np.all(x <= self.xmax))
+        tmin = bool(np.all(x >= self.xmin))
+        return tmax and tmin
 
 class Model(object):
 
@@ -53,38 +100,50 @@ class Model(object):
             Contains list of parameter fits and the final function value.
 
         """
-        fit_pso, fun_pso = pso(
+        # fit_pso, fun_pso = pso(
+        #     self.objective,
+        #     self.lb, 
+        #     self.ub,
+        #     swarmsize=self.swarm_params["swarmsize"],
+        #     phip=self.swarm_params["phip"],
+        #     phig=self.swarm_params["phig"],
+        #     omega=self.swarm_params["omega"],
+        #     minstep=self.swarm_params["minstep"],
+        #     minfunc=self.swarm_params["minfunc"],
+        #     maxiter=self.swarm_params["maxiter"], #800 is arbitrary, doesn't seem to get reached
+        #     f_ieqcons=self.pso_con
+        # )
+        stepper = RandomDisplacementBounds(self.lb, self.ub)
+        accepter = MyBounds(self.ub, self.lb)
+        minimizer_kwargs = {"method":"TNC", "bounds":self.bounds, "jac":autograd.jacobian(self.objective)}
+        second_pass_res = basinhopping(
             self.objective,
-            self.lb, 
-            self.ub,
-            phip=self.swarm_params["phip"],
-            phig=self.swarm_params["phig"],
-            omega=self.swarm_params["omega"],
-            minstep=self.swarm_params["minstep"],
-            minfunc=self.swarm_params["minfunc"],
-            maxiter=self.swarm_params["maxiter"], #800 is arbitrary, doesn't seem to get reached
-            f_ieqcons=self.pso_con
-        )
-        second_pass_res = minimize(
-            self.objective,
-            fit_pso,
-            method='L-BFGS-B',
-            bounds=self.bounds,
-            options={'disp': False}
+            self.x0,
+            disp=False,
+            niter=100,
+            accept_test=accepter,
+            take_step=stepper,  
+            stepsize=100,
+            minimizer_kwargs=minimizer_kwargs,
+            interval=10,
+
         )
         # second_pass_res = minimize(
-        #     self.build_function,
+        #     self.objective,
         #     self.x0,
-        #     method='BFGS',
-        #     tol=1e-10,
-        #     options={'disp': False}
+        #     method='L-BFGS-B',
+        #     bounds=self.bounds,
+        #     jac=autograd.jacobian(self.objective),
+        #     options={
+        #         'disp': False,
+        #         'gtol':1e-10,
+        #         'ftol':1e-10,
+        #     }
         # )
         self.fit = second_pass_res.x
         self.fun = second_pass_res.fun
+        
         return (self.fit, self.fun)
-        # self.fit = fit_pso
-        # self.fun = fun_pso
-        # return(self.fit, self.fun)
 
     def build_function(self):
         """Embed model parameters in model function.

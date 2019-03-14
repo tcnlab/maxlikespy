@@ -112,14 +112,14 @@ def run_script(cell_range):
     # pipeline.fit_all_models(2)
     # pipeline.compare_models("Const", "Time", 0.01)
 
-    path_to_data = "/Users/stevecharczynski/workspace/data/cromer"
-    # path_to_data =  "/projectnb/ecog-eeg/stevechar/data/cromer"
+    # path_to_data = "/Users/stevecharczynski/workspace/data/cromer"
+    path_to_data =  "/projectnb/ecog-eeg/stevechar/data/cromer"
     time_info = [400, 2000]
     data_processor = DataProcessor(
         path_to_data, cell_range, time_info=time_info)
     n_t = 2.
     swarm_params = {
-        "swarmsize": 200,
+        "swarmsize": 50,
         "phip": 0.5,
         "phig": 0.5,
         "omega": 0.5,
@@ -128,14 +128,14 @@ def run_script(cell_range):
         "maxiter": 1000
     }
     bounds = {
-        "a_1": [0., 1 / n_t],
+        "a_1": [10**-10, 1 / n_t],
         "ut": [0., 2400.],
         "st": [10., 5000.],
         "a_0": [10**-10, 1 / n_t]
     }
     bounds_c = {"a_0": [10**-10, 0.999]}
     pipeline = AnalysisPipeline(cell_range, data_processor, [
-                                "Const", "Time"], 0, swarm_params)
+                                "Time", "Const"], 0, swarm_params)
     pipeline.set_model_bounds("Time", bounds)
     pipeline.set_model_bounds("Const", bounds_c)
     pipeline.fit_all_models(1)
@@ -213,7 +213,7 @@ def run_script(cell_range):
     # util.collect_data(cell_range, "cell_fits")
 
 
-run_script(range(5,6))
+# run_script(range(1,3))
 if __name__ == "__main__":
     cell_range = sys.argv[-2:]
     cell_range = list(map(int, cell_range))

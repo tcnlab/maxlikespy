@@ -221,7 +221,7 @@ class AnalysisPipeline(object):
                 iteration += 1
         model.fit = params_min
         model.fun = fun_min
-
+    
         return model
 
     def _do_compare(self, model_min, model_max, cell, p_value):
