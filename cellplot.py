@@ -47,7 +47,7 @@ def plot_cat_fit(model, cell_num, spikes, subsample=0):
     for condition in model.conditions:
         if condition:
             plt.subplot(2, num_conditions, condition + 1)
-            plt.plot(window, model.expose_fit(condition), label="fit")
+            plt.plot(window, model.model(model.fit, plot=True, condition=condition), label="fit")
             plt.plot(window,
                      smooth_spikes(spikes, model.num_trials, subsample=subsample, condition=condition), label="spike_train")
 
@@ -102,12 +102,16 @@ def plot_fit(model):
         model.time_info[0],
         model.time_info[1],
         1)
-    fit = model.model(model.fit)
-    try:
+    fit = model.model(model.fit, plot=True)
+    # try:
+    #     plt.plot(window, fit, label=model.__class__.__name__)
+    # except:
+    #     if fit.size == 1:
+    #         plt.plot(window, np.full(model.t.shape, fit), label=model.__class__.__name__ )
+    if fit.size == 1:
+        plt.plot(window, np.full(model.t.shape, fit), label=model.__class__.__name__ )
+    else:
         plt.plot(window, fit, label=model.__class__.__name__)
-    except:
-        if fit.size == 1:
-            plt.plot(window, np.full(model.t.shape, fit), label=model.__class__.__name__ )
 
 
 

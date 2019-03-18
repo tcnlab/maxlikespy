@@ -120,7 +120,7 @@ class Model(object):
             self.objective,
             self.x0,
             disp=False,
-            niter=100,
+            niter=200,
             accept_test=accepter,
             take_step=stepper,  
             stepsize=100,

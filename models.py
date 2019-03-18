@@ -25,7 +25,7 @@ class Time(Model):
         super().__init__(data)
         self.spikes = data['spikes']
         self.param_names = ["a_1", "ut", "st", "a_0"]
-        self.x0 = [0.001, 100, 100, 0.001]
+        self.x0 = [1e-5, 100, 100, 1e-5]
 
 
     def objective(self, x):
@@ -35,7 +35,7 @@ class Time(Model):
         
         return obj
 
-    def model(self, x):
+    def model(self, x, plot=False):
         a, ut, st, o = x[0], x[1], x[2], x[3]
 
         self.function = (
@@ -69,7 +69,7 @@ class Const(Model):
         self.param_names = ["a_0"]
         self.x0 = [0.1]
 
-    def model(self, x):
+    def model(self, x, plot=False):
         o = x[0]
         # print(x)
         return o
@@ -125,13 +125,15 @@ class CatSetTime(Model):
 
     def __init__(self, data):
         super().__init__(data)
+        self.plot_t = self.t
         self.t = np.tile(self.t, (data["num_trials"], 1))
         self.conditions = data["conditions"]
         self.param_names = ["ut", "st", "a_0", "a_1", "a_2"]
+        self.x0 = [500, 100, 0.001, 0.001, 0.001]
         self.spikes = data["spikes"]
         self.info = {}
 
-    def model(self, x):
+    def model(self, x, plot=False, condition=None):
         pairs = self.info["pairs"]
         ut, st, a_0 = x[0], x[1], x[2]
         a_1, a_2 = x[3], x[4]
@@ -139,6 +141,15 @@ class CatSetTime(Model):
         pair_2 = pairs[1]
         c1 = self.conditions[pair_1[0]] + self.conditions[pair_1[1]]
         c2 = self.conditions[pair_2[0]] + self.conditions[pair_2[1]]
+
+        if plot:
+            if condition==1:
+                return ((a_1  * np.exp(-np.power(self.plot_t - ut, 2.) / (2 * np.power(st, 2.)))))
+            elif condition==2:
+                return ((a_2  * np.exp(-np.power(self.plot_t - ut, 2.) / (2 * np.power(st, 2.)))))
+            else:
+                return ((a_1  * np.exp(-np.power(self.plot_t - ut, 2.) / (2 * np.power(st, 2.)))) + \
+                (a_2 * np.exp(-np.power(self.plot_t - ut, 2.) / (2 * np.power(st, 2.))))) + a_0
 
         return ((a_1 * c1 * np.exp(-np.power(self.t - ut, 2.) / (2 * np.power(st, 2.)))) + \
             (a_2 * c2 * np.exp(-np.power(self.t - ut, 2.) / (2 * np.power(st, 2.))))) + a_0
