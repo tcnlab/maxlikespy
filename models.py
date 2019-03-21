@@ -212,10 +212,12 @@ class CatTime(Model):
     def __init__(self, data):
         super().__init__(data)
         # t ends up needing to include trial dimension due to condition setup
+        self.plot_t = self.t
         self.t = np.tile(self.t, (data["num_trials"], 1))
         self.conditions = data["conditions"]
         self.spikes = data['spikes']
         self.param_names = ["ut", "st", "a_0", "a_1", "a_2", "a_3", "a_4"]
+        self.x0 = [500, 100, 0.001, 0.001, 0.001, 0.001, 0.001]
         # mean_delta = 0.10 * (self.time_info.region_high -
         #                      self.time_info.region_low)
         # mean_bounds = (
@@ -253,25 +255,42 @@ class CatTime(Model):
 
     #     return objective
 
-    def model(self, x):
+    def model(self, x, plot=False, condition=False):
         c1 = self.conditions[1]
         c2 = self.conditions[2]
         c3 = self.conditions[3]
         c4 = self.conditions[4]
 
-        ut, st, o = x[0], x[1], x[2]
-        a1, a2, a3, a4 = x[3], x[4], x[5], x[6]
+        ut, st, a_0 = x[0], x[1], x[2]
+        a_1, a_2, a_3, a_4 = x[3], x[4], x[5], x[6]
 
-        fun1 = a1 * np.exp(-np.power(self.t - ut, 2.) /
+        fun1 = a_1 * np.exp(-np.power(self.t - ut, 2.) /
                            (2 * np.power(st, 2.)))
-        fun2 = a2 * np.exp(-np.power(self.t - ut, 2.) /
+        fun2 = a_2 * np.exp(-np.power(self.t - ut, 2.) /
                            (2 * np.power(st, 2.)))
-        fun3 = a3 * np.exp(-np.power(self.t - ut, 2.) /
+        fun3 = a_3 * np.exp(-np.power(self.t - ut, 2.) /
                            (2 * np.power(st, 2.)))
-        fun4 = a4 * np.exp(-np.power(self.t - ut, 2.) /
+        fun4 = a_4 * np.exp(-np.power(self.t - ut, 2.) /
                            (2 * np.power(st, 2.)))
 
-        return (c1*fun1 + c2*fun2 + c3*fun3 + c4*fun4)+o
+        if plot:
+            if condition==1:
+                return ((a_1  * np.exp(-np.power(self.plot_t - ut, 2.) / (2 * np.power(st, 2.)))))
+            elif condition==2:
+                return ((a_2  * np.exp(-np.power(self.plot_t - ut, 2.) / (2 * np.power(st, 2.)))))
+            elif condition==3:
+                return ((a_3  * np.exp(-np.power(self.plot_t - ut, 2.) / (2 * np.power(st, 2.)))))
+            elif condition ==4:
+                return ((a_4  * np.exp(-np.power(self.plot_t - ut, 2.) / (2 * np.power(st, 2.)))))
+            else:
+                return (
+                    ((a_1  * np.exp(-np.power(self.plot_t - ut, 2.) / (2 * np.power(st, 2.))))) +
+                    ((a_2  * np.exp(-np.power(self.plot_t - ut, 2.) / (2 * np.power(st, 2.))))) +
+                    ((a_3  * np.exp(-np.power(self.plot_t - ut, 2.) / (2 * np.power(st, 2.))))) + 
+                    ((a_4  * np.exp(-np.power(self.plot_t - ut, 2.) / (2 * np.power(st, 2.))))) + a_0
+                )
+
+        return (c1*fun1 + c2*fun2 + c3*fun3 + c4*fun4)+ a_0
 
     def objective(self, x):
         fun = self.model(x)
