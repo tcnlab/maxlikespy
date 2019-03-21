@@ -23,9 +23,9 @@ def plot_raster(spikes, time_info, condition=0, conditions=0):
     if condition:
         scatter_data = np.nonzero(spikes.T * conditions[condition])
     else:
-        scatter_data = np.add(np.nonzero(spikes.T), time_info[0])
-
-    plt.scatter(scatter_data[0], scatter_data[1],
+        scatter_data = np.nonzero(spikes.T)
+    # scatter_data[0] = np.add(scatter_data[0], time_info[0])
+    plt.scatter(np.add(scatter_data[0], time_info[0]), scatter_data[1],
                 c=[[0, 0, 0]], marker="o", s=1)
 
 def plot_spike_train(spike_train):
