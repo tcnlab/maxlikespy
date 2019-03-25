@@ -42,9 +42,9 @@ class Time(Model):
             (a * np.exp(-np.power(self.t - ut, 2.) / (2 * np.power(st, 2.)))) + o)
         return self.function
 
-    def fit_params(self):
-        super().fit_params()
-        return (self.fit, self.fun)
+    # def fit_params(self):
+    #     super().fit_params()
+    #     return (self.fit, self.fun)
 
     def pso_con(self, x):
         return 1 - (x[0] + x[3])
@@ -80,10 +80,10 @@ class Const(Model):
                       (1 - self.spikes) * (-np.log(1 - (fun)))))
         return obj
 
-    def fit_params(self):
-        super().fit_params()
-        self.o = self.fit
-        return (self.fit, self.fun)
+    # def fit_params(self):
+    #     super().fit_params()
+    #     self.o = self.fit
+    #     return (self.fit, self.fun)
 
     def pso_con(self, x):
         return 1 - x
@@ -158,14 +158,6 @@ class CatSetTime(Model):
         fun = self.model(x)
         return np.sum((self.spikes * (-np.log(fun)) +
                         (1 - self.spikes) * (-np.log(1 - (fun)))))
-
-    def fit_params(self):
-        super().fit_params()
-        self.o = self.fit[0]
-        self.a1 = self.fit[1]
-        self.a2 = self.fit[2]
-
-        return self.fit, self.fun
 
     def pso_con(self, x):
 
@@ -296,10 +288,6 @@ class CatTime(Model):
         fun = self.model(x)
         return np.sum(self.spikes * (-np.log(fun)) +
                       (1 - self.spikes) * (-np.log(1 - (fun))))
-
-    def fit_params(self):
-        super().fit_params()
-        return self.fit, self.fun
 
     def update_params(self):
 

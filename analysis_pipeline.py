@@ -50,22 +50,11 @@ class AnalysisPipeline(object):
 
     """
 
-    def __init__(self, cell_range, data_processor, models, subsample=0, swarm_params=None):
+    def __init__(self, cell_range, data_processor, models, subsample=0):
         self.time_start = time.time()
         self.cell_range = cell_range
         self.data_processor = data_processor
         self.subsample = subsample
-        if not swarm_params:
-            self.swarm_params = {
-                "phip": 0.5,
-                "phig": 0.5,
-                "omega": 0.5,
-                "minstep": 1e-8,
-                "minfunc": 1e-8,
-                "maxiter": 1000
-            }
-        else:
-            self.swarm_params = swarm_params
         self.model_dict = self._make_models(models)
 
     def _make_models(self, models_to_fit):
@@ -103,14 +92,15 @@ class AnalysisPipeline(object):
                     model_data['conditions'] = conditions
                 if spike_info:
                     model_data['spike_info'] = spike_info[str(cell)]
-                model_data['swarm_params'] = self.swarm_params
                 # this creates an instance of class "model" in the module "models"
-                try:
-                    model_instance = getattr(models, model)(model_data)
-                    model_dict[model][cell] = model_instance
-                except:
-                    raise NameError(
-                        "Supplied model \"{0}\" does not exist".format(model))
+
+                model_instance = getattr(models, model)(model_data)
+                model_dict[model][cell] = model_instance
+                # try:
+
+                # except:
+                #     raise NameError(
+                #         "Supplied model \"{0}\" does not exist".format(model))
 
         return model_dict
 
@@ -164,7 +154,7 @@ class AnalysisPipeline(object):
 
         return True
 
-    def fit_all_models(self, iterations):
+    def fit_all_models(self, solver_params):
         """Fits parameters for all models then saves to disk.
 
         Parameters
@@ -184,8 +174,10 @@ class AnalysisPipeline(object):
                 model_instance = self.model_dict[model][cell]
                 if model_instance.bounds is None:
                     raise ValueError("model \"{0}\" bounds not yet set".format(model))
+
                 print("fitting {0}".format(model))
-                self._fit_model(model_instance, iterations)
+                model_instance.fit_params(solver_params)
+                # Build dict for json dump, json requires list instead of ndarray
                 param_dict = {param: model_instance.fit.tolist()[index] 
                     for index, param in enumerate(model_instance.param_names)}
                 cell_fits[cell][model_instance.__class__.__name__] = param_dict
@@ -195,34 +187,6 @@ class AnalysisPipeline(object):
             util.save_data(cell_lls, "log_likelihoods", cell=cell)
 
         return True
-
-    def _fit_model(self, model, iterations):
-        """Fit given model parameters.
-
-        """
-        self._iterate_fits(model, iterations)
-        return model
-
-    @staticmethod
-    def _iterate_fits(model, n):
-        """Performs fitting, checking if fit is improved for n iterations.
-
-        """
-        iteration = 0
-        fun_min = sys.float_info.max
-        while iteration < n:
-            model.fit_params()
-            # check if the returned fit is better by at least a tiny amount
-            if model.fun < (fun_min - fun_min * 0.0001):
-                fun_min = model.fun
-                params_min = model.fit
-                iteration = 0
-            else:
-                iteration += 1
-        model.fit = params_min
-        model.fun = fun_min
-    
-        return model
 
     def _do_compare(self, model_min, model_max, cell, p_value):
         """Internally runs likelhood ratio test.

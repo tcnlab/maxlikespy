@@ -82,16 +82,17 @@ class Model(object):
     """
 
     def __init__(self, data):
+        print("are we in here?")
         self.time_info = data['time_info']
         self.t = np.arange(
             self.time_info[0],
             self.time_info[1],
             1)
         self.num_trials = data['num_trials']
-        self.swarm_params = data['swarm_params']
         self.bounds = None
+        self.x0 = None
 
-    def fit_params(self):
+    def fit_params(self, solver_params):
         """Fit model paramters using Particle Swarm Optimization then SciPy's minimize.
 
         Returns
@@ -100,46 +101,25 @@ class Model(object):
             Contains list of parameter fits and the final function value.
 
         """
-        # fit_pso, fun_pso = pso(
-        #     self.objective,
-        #     self.lb, 
-        #     self.ub,
-        #     swarmsize=self.swarm_params["swarmsize"],
-        #     phip=self.swarm_params["phip"],
-        #     phig=self.swarm_params["phig"],
-        #     omega=self.swarm_params["omega"],
-        #     minstep=self.swarm_params["minstep"],
-        #     minfunc=self.swarm_params["minfunc"],
-        #     maxiter=self.swarm_params["maxiter"], #800 is arbitrary, doesn't seem to get reached
-        #     f_ieqcons=self.pso_con
-        # )
         stepper = RandomDisplacementBounds(self.lb, self.ub)
         accepter = MyBounds(self.ub, self.lb)
-        minimizer_kwargs = {"method":"TNC", "bounds":self.bounds, "jac":autograd.jacobian(self.objective)}
+        if solver_params["use_jac"]:
+            minimizer_kwargs = {"method":solver_params["method"], "bounds":self.bounds, "jac":autograd.jacobian(self.objective)}
+        else:
+            minimizer_kwargs = {"method":solver_params["method"], "bounds":self.bounds}
+
         second_pass_res = basinhopping(
             self.objective,
             self.x0,
             disp=False,
-            niter=200,
+            niter=solver_params["niter"],
             accept_test=accepter,
             take_step=stepper,  
-            stepsize=100,
+            stepsize=solver_params["stepsize"],
             minimizer_kwargs=minimizer_kwargs,
-            interval=10,
-
+            interval=solver_params["interval"],
         )
-        # second_pass_res = minimize(
-        #     self.objective,
-        #     self.x0,
-        #     method='L-BFGS-B',
-        #     bounds=self.bounds,
-        #     jac=autograd.jacobian(self.objective),
-        #     options={
-        #         'disp': False,
-        #         'gtol':1e-10,
-        #         'ftol':1e-10,
-        #     }
-        # )
+        
         self.fit = second_pass_res.x
         self.fun = second_pass_res.fun
         
