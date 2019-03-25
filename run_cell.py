@@ -43,35 +43,36 @@ def run_script(cell_range):
     # pipeline.compare_models("Const", "Time", 0.01)
 
     # path_to_data = "/Users/stevecharczynski/workspace/data/salz"
-    # time_info = [1000, 21000]
-    # data_processor = DataProcessor(
-    #     path_to_data, cell_range, time_info=time_info)
-    # n = 2
-    # mean_delta = 0.10 * (time_info[1] - time_info[0])
-    # mean_bounds = (
-    #     (time_info[0] - mean_delta),
-    #     (time_info[1] + mean_delta))
-    # swarm_params = {
-    #     "phip": 0.5,
-    #     "phig": 0.5,
-    #     "omega": 0.6,
-    #     "minstep": 1e-10,
-    #     "minfunc": 1e-10,
-    #     "maxiter": 1000
-    # }
-    # bounds = {
-    #     "a_1": [0, 1 / n],
-    #     "ut": [mean_bounds[0], mean_bounds[1]],
-    #     "st": [10, 50000],
-    #     "a_0": [10**-10, 1 / n]
-    # }
-    # bounds_c = {"a_0": [10**-10, 0.999]}
-    # pipeline = AnalysisPipeline(cell_range, data_processor, [
-    #                             "Const", "Time"], 0, swarm_params)
-    # pipeline.set_model_bounds("Time", bounds)
-    # pipeline.set_model_bounds("Const", bounds_c)
-    # pipeline.fit_all_models(1)
-    # pipeline.compare_models("Const", "Time", 0.01)
+    path_to_data = "/projectnb/ecog-eeg/stevechar/data/salz"
+    time_info = [1000, 21000]
+    data_processor = DataProcessor(
+        path_to_data, cell_range, time_info=time_info)
+    n = 2
+    mean_delta = 0.10 * (time_info[1] - time_info[0])
+    mean_bounds = (
+        (time_info[0] - mean_delta),
+        (time_info[1] + mean_delta))
+    swarm_params = {
+        "phip": 0.5,
+        "phig": 0.5,
+        "omega": 0.6,
+        "minstep": 1e-10,
+        "minfunc": 1e-10,
+        "maxiter": 1000
+    }
+    bounds = {
+        "a_1": [0, 1 / n],
+        "ut": [mean_bounds[0], mean_bounds[1]],
+        "st": [10, 50000],
+        "a_0": [10**-10, 1 / n]
+    }
+    bounds_c = {"a_0": [10**-10, 0.999]}
+    pipeline = AnalysisPipeline(cell_range, data_processor, [
+                                "Const", "Time"], 0, swarm_params)
+    pipeline.set_model_bounds("Time", bounds)
+    pipeline.set_model_bounds("Const", bounds_c)
+    pipeline.fit_all_models(1)
+    pipeline.compare_models("Const", "Time", 0.01)
 
     # path_to_data = "/Users/stevecharczynski/workspace/data/cromer"
     # # path_to_data = '/projectnb/ecog-eeg/stevechar/data/cromer'
@@ -116,32 +117,32 @@ def run_script(cell_range):
     # pipeline.show_condition_fit("CatSetTime")
 
     # path_to_data = "/Users/stevecharczynski/workspace/data/kim"
-    path_to_data = "/projectnb/ecog-eeg/stevechar/data/kim"
-    time_info = [0, 4784]
-    data_processor = DataProcessor(
-        path_to_data, cell_range, time_info=time_info)
-    n = 2
-    swarm_params = {
-        "phip": 0.5,
-        "phig": 0.5,
-        "omega": 0.5,
-        "minstep": 1e-10,
-        "minfunc": 1e-10,
-        "maxiter": 1000
-    }
-    bounds = {
-        "a_1": [0, 1 / n],
-        "ut": [-200, 5200],
-        "st": [10, 10000],
-        "a_0": [10**-10, 1 / n]
-    }
-    bounds_c = {"a_0": [10**-10, 0.999]}
-    pipeline = AnalysisPipeline(cell_range, data_processor, [
-                                "Const", "Time"], 0, swarm_params)
-    pipeline.set_model_bounds("Time", bounds)
-    pipeline.set_model_bounds("Const", bounds_c)
-    pipeline.fit_all_models(1)
-    pipeline.compare_models("Const", "Time", 0.01)
+    # path_to_data = "/projectnb/ecog-eeg/stevechar/data/kim"
+    # time_info = [0, 4784]
+    # data_processor = DataProcessor(
+    #     path_to_data, cell_range, time_info=time_info)
+    # n = 2
+    # swarm_params = {
+    #     "phip": 0.5,
+    #     "phig": 0.5,
+    #     "omega": 0.5,
+    #     "minstep": 1e-10,
+    #     "minfunc": 1e-10,
+    #     "maxiter": 1000
+    # }
+    # bounds = {
+    #     "a_1": [0, 1 / n],
+    #     "ut": [-200, 5200],
+    #     "st": [10, 10000],
+    #     "a_0": [10**-10, 1 / n]
+    # }
+    # bounds_c = {"a_0": [10**-10, 0.999]}
+    # pipeline = AnalysisPipeline(cell_range, data_processor, [
+    #                             "Const", "Time"], 0, swarm_params)
+    # pipeline.set_model_bounds("Time", bounds)
+    # pipeline.set_model_bounds("Const", bounds_c)
+    # pipeline.fit_all_models(1)
+    # pipeline.compare_models("Const", "Time", 0.01)
 
     # path_to_data = "/Users/stevecharczynski/workspace/data/cromer"
     # # path_to_data =  "/projectnb/ecog-eeg/stevechar/data/cromer"
