@@ -14,40 +14,23 @@ class RandomDisplacementBounds(object):
 
     def __call__(self, x):
         """take a random step but ensure the new position is within the bounds"""
-
         min_step = np.maximum(self.xmin - x, -self.stepsize)
         max_step = np.minimum(self.xmax - x, self.stepsize)
-        print("min_step {0}".format(min_step))
-        print("max_step {0}".format(max_step))
         random_step = np.random.uniform(low=min_step, high=max_step, size=x.shape)
-        # random_step = np.random.normal((min_step+max_step)/2, self.stepsize, size=x.shape)
-
-        print("random_step {0}".format(random_step))
-        print("x is {0}".format(x))
         xnew = x + random_step
-        # if x <= self.xmin:
-        #     xnew = self.xmin
-        # elif x >= self.xmax:
-        #     xnew = self.xmax
-        # else:       
-        #     while True:
-        #         # this could be done in a much more clever way, but it will work for example purposes
-        #         xnew = x + np.random.uniform(-self.stepsize, self.stepsize, np.shape(x))
-        #         if np.all(xnew < self.xmax) and np.all(xnew > self.xmin):
-        #             break
-        
-        print("new step is {0}".format(xnew))
 
         return xnew
 
-class MyBounds(object):
+class AccepterBounds(object):
     def __init__(self, xmax, xmin):
         self.xmax = np.array(xmax)
         self.xmin = np.array(xmin)
+
     def __call__(self, **kwargs):
         x = kwargs["x_new"]
         tmax = bool(np.all(x <= self.xmax))
         tmin = bool(np.all(x >= self.xmin))
+
         return tmax and tmin
 
 class Model(object):
@@ -91,6 +74,7 @@ class Model(object):
         self.num_trials = data['num_trials']
         self.bounds = None
         self.x0 = None
+        self.info = None
 
     def fit_params(self, solver_params):
         """Fit model paramters using Particle Swarm Optimization then SciPy's minimize.
@@ -101,8 +85,13 @@ class Model(object):
             Contains list of parameter fits and the final function value.
 
         """
+        param_keys = ["use_jac", "method", "niter", "stepsize", "interval"]
+        for key in param_keys:
+            if key not in solver_params:
+                raise KeyError("Solver option {0} not set".format(key))
+
         stepper = RandomDisplacementBounds(self.lb, self.ub)
-        accepter = MyBounds(self.ub, self.lb)
+        accepter = AccepterBounds(self.ub, self.lb)
         if solver_params["use_jac"]:
             minimizer_kwargs = {"method":solver_params["method"], "bounds":self.bounds, "jac":autograd.jacobian(self.objective)}
         else:

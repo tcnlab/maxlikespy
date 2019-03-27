@@ -42,10 +42,6 @@ class Time(Model):
             (a * np.exp(-np.power(self.t - ut, 2.) / (2 * np.power(st, 2.)))) + o)
         return self.function
 
-    # def fit_params(self):
-    #     super().fit_params()
-    #     return (self.fit, self.fun)
-
     def pso_con(self, x):
         return 1 - (x[0] + x[3])
 
@@ -71,7 +67,6 @@ class Const(Model):
 
     def model(self, x, plot=False):
         o = x[0]
-        # print(x)
         return o
 
     def objective(self, x):
@@ -79,11 +74,6 @@ class Const(Model):
         obj = (np.sum(self.spikes * (-np.log(fun)) +
                       (1 - self.spikes) * (-np.log(1 - (fun)))))
         return obj
-
-    # def fit_params(self):
-    #     super().fit_params()
-    #     self.o = self.fit
-    #     return (self.fit, self.fun)
 
     def pso_con(self, x):
         return 1 - x

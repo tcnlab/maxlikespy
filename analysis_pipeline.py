@@ -83,7 +83,7 @@ class AnalysisPipeline(object):
 
             for model in models_to_fit:
 
-                # data passed here is determined by what models need
+                # data to be passed to models
                 model_data = {}
                 model_data['spikes'] = spikes_binned
                 model_data['time_info'] = self.data_processor.time_info
@@ -93,14 +93,12 @@ class AnalysisPipeline(object):
                 if spike_info:
                     model_data['spike_info'] = spike_info[str(cell)]
                 # this creates an instance of class "model" in the module "models"
-
-                model_instance = getattr(models, model)(model_data)
-                model_dict[model][cell] = model_instance
-                # try:
-
-                # except:
-                #     raise NameError(
-                #         "Supplied model \"{0}\" does not exist".format(model))
+                try:                
+                    model_instance = getattr(models, model)(model_data)
+                    model_dict[model][cell] = model_instance
+                except:
+                    raise NameError(
+                        "Supplied model \"{0}\" does not exist".format(model))
 
         return model_dict
 
@@ -154,7 +152,7 @@ class AnalysisPipeline(object):
 
         return True
 
-    def fit_all_models(self, solver_params):
+    def fit_all_models(self, solver_params=None):
         """Fits parameters for all models then saves to disk.
 
         Parameters
@@ -164,8 +162,18 @@ class AnalysisPipeline(object):
             before terminating. 
 
         """
+        if not solver_params:
+            print("Solver params not set, using preconfigured defaults")
+            solver_params = {
+                "niter": 200,
+                "stepsize": 100,
+                "interval": 10,
+                "method": "TNC",
+                "use_jac": True,
+            }
         cell_fits = {}
         cell_lls = {}
+
         for cell in self.cell_range:
             print(cell)
             cell_fits[cell] = {}
@@ -192,8 +200,6 @@ class AnalysisPipeline(object):
         """Internally runs likelhood ratio test.
 
         """
-
-        # possibly rewrite to create one CellPlot and pass params for plotting
         try:
             min_model = self.model_dict[model_min][cell]
         except:
