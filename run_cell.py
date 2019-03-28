@@ -81,7 +81,7 @@ def run_script(cell_range):
         path_to_data, cell_range, time_info=time_info)
     n_c = 5
     solver_params = {
-        "niter": 200,
+        "niter": 50,
         "stepsize": 100,
         "interval": 10,
         "method": "TNC",
