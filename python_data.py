@@ -63,8 +63,8 @@ class DataProcessor(object):
         self.num_trials = self._extract_num_trials()
         conditions = self._extract_conditions()
         if conditions is not None:
-            # this will fail if first cell doenst include all cond, hack
-            self.num_conditions = len(np.unique(conditions[0]))
+            # finds total number of different conditions in supplied file
+            self.num_conditions = len(set([item for sublist in list(conditions.values()) for item in sublist]))
         self.conditions_dict = self._associate_conditions(conditions)
         # if time_info is not provided, a default window will be constructed
         # based off the min and max values found in the data
@@ -98,7 +98,7 @@ class DataProcessor(object):
 
         Returns
         -------
-        dict (int: numpy.ndarray of float?)
+        dict (int: numpy.ndarray of float)
             Contains per cell spike times.
 
         """
