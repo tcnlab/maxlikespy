@@ -1,4 +1,8 @@
 #!/bin/bash -l
+#$ -l h_rt=140:00:00
+#$ -P ecog-eeg
+#$ -N "cell_$1"
+
 
 module load python3
 

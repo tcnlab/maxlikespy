@@ -1,7 +1,7 @@
 #!/bin/bash -l
 #$ -l h_rt=140:00:00
 #$ -P ecog-eeg
-#$ -pe omp 1
+#$ -N run_all_cells
 
 
 module load python3

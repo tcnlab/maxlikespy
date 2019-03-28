@@ -65,7 +65,6 @@ class Model(object):
     """
 
     def __init__(self, data):
-        print("are we in here?")
         self.time_info = data['time_info']
         self.t = np.arange(
             self.time_info[0],

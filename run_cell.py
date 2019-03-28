@@ -36,22 +36,50 @@ def run_script(cell_range):
     # }
     # bounds_c = {"a_0": [10**-10, 0.999]}
     # pipeline = AnalysisPipeline(cell_range, data_processor, [
-    #                             "Const", "Time"], 0, swarm_params)
+    #                             "Const", "Time"], 0)
     # pipeline.set_model_bounds("Time", bounds)
     # pipeline.set_model_bounds("Const", bounds_c)
-    # pipeline.fit_all_models(1)
+    # pipeline.fit_all_models(swarm_params)
     # pipeline.compare_models("Const", "Time", 0.01)
 
-    path_to_data = "/Users/stevecharczynski/workspace/data/salz"
-    # path_to_data = "/projectnb/ecog-eeg/stevechar/data/salz"
-    time_info = [1000, 21000]
+    # path_to_data = "/Users/stevecharczynski/workspace/data/salz"
+    # # path_to_data = "/projectnb/ecog-eeg/stevechar/data/salz"
+    # time_info = [1000, 21000]
+    # data_processor = DataProcessor(
+    #     path_to_data, cell_range, time_info=time_info)
+    # n = 2
+    # mean_delta = 0.10 * (time_info[1] - time_info[0])
+    # mean_bounds = (
+    #     (time_info[0] - mean_delta),
+    #     (time_info[1] + mean_delta))
+    # solver_params = {
+    #     "niter": 200,
+    #     "stepsize": 100,
+    #     "interval": 10,
+    #     "method": "TNC",
+    #     "use_jac": True,
+    # }
+    # bounds = {
+    #     "a_1": [0, 1 / n],
+    #     "ut": [mean_bounds[0], mean_bounds[1]],
+    #     "st": [10, 50000],
+    #     "a_0": [10**-10, 1 / n]
+    # }
+    # bounds_c = {"a_0": [10**-10, 0.999]}
+    # pipeline = AnalysisPipeline(cell_range, data_processor, [
+    #                             "Const", "Time"], 0)
+    # pipeline.set_model_bounds("Time", bounds)
+    # pipeline.set_model_bounds("Const", bounds_c)
+    # pipeline.fit_all_models(solver_params)
+    # pipeline.compare_models("Const", "Time", 0.01)
+
+    # path_to_data = "/Users/stevecharczynski/workspace/data/cromer"
+    path_to_data = '/projectnb/ecog-eeg/stevechar/data/cromer'
+    # path_to_data = "/usr3/bustaff/scharcz/workspace/cromer/"
+    time_info = [400, 2000]
     data_processor = DataProcessor(
         path_to_data, cell_range, time_info=time_info)
-    n = 2
-    mean_delta = 0.10 * (time_info[1] - time_info[0])
-    mean_bounds = (
-        (time_info[0] - mean_delta),
-        (time_info[1] + mean_delta))
+    n_c = 5
     solver_params = {
         "niter": 200,
         "stepsize": 100,
@@ -59,61 +87,32 @@ def run_script(cell_range):
         "method": "TNC",
         "use_jac": True,
     }
-    bounds = {
-        "a_1": [0, 1 / n],
-        "ut": [mean_bounds[0], mean_bounds[1]],
-        "st": [10, 50000],
-        "a_0": [10**-10, 1 / n]
+    bounds_cat = {
+        "ut": [0, 2400],
+        "st": [10, 5000],
+        "a_0": [10**-10, 1 / n_c],
+        "a_1": [10**-10, 1 / n_c],
+        "a_2": [10**-10, 1 / n_c],
+        "a_3": [10**-10, 1 / n_c],
+        "a_4": [10**-10, 1 / n_c]
     }
-    bounds_c = {"a_0": [10**-10, 0.999]}
+    n_cs = 3
+    bounds_cs = {
+        "ut": [0, 2400],
+        "st": [10, 5000],
+        "a_0": [10**-10, 1 / n_cs],
+        "a_1": [10**-10, 1 / n_cs],
+        "a_2": [10**-10, 1 / n_cs],
+    }
     pipeline = AnalysisPipeline(cell_range, data_processor, [
-                                "Const", "Time"], 0)
-    pipeline.set_model_bounds("Time", bounds)
-    pipeline.set_model_bounds("Const", bounds_c)
-    pipeline.fit_all_models(solver_params)
-    pipeline.compare_models("Const", "Time", 0.01)
-
-    # path_to_data = "/Users/stevecharczynski/workspace/data/cromer"
-    # # path_to_data = '/projectnb/ecog-eeg/stevechar/data/cromer'
-    # # path_to_data = "/usr3/bustaff/scharcz/workspace/cromer/"
-    # time_info = [400, 2000]
-    # data_processor = DataProcessor(
-    #     path_to_data, cell_range, time_info=time_info)
-    # n_c = 5
-    # swarm_params = {
-    #     "phip": 0.5,
-    #     "phig": 0.5,
-    #     "omega": 0.5,
-    #     "minstep": 1e-10,
-    #     "minfunc": 1e-10,
-    #     "maxiter": 1000
-    # }
-    # bounds_cat = {
-    #     "ut": [0, 2400],
-    #     "st": [10, 5000],
-    #     "a_0": [10**-10, 1 / n_c],
-    #     "a_1": [10**-10, 1 / n_c],
-    #     "a_2": [10**-10, 1 / n_c],
-    #     "a_3": [10**-10, 1 / n_c],
-    #     "a_4": [10**-10, 1 / n_c]
-    # }
-    # n_cs = 3
-    # bounds_cs = {
-    #     "ut": [0, 2400],
-    #     "st": [10, 5000],
-    #     "a_0": [10**-10, 1 / n_cs],
-    #     "a_1": [10**-10, 1 / n_cs],
-    #     "a_2": [10**-10, 1 / n_cs],
-    # }
-    # pipeline = AnalysisPipeline(cell_range, data_processor, [
-    #                             "CatTime", "CatSetTime"], 0, swarm_params)
-    # pipeline.set_model_bounds("CatSetTime", bounds_cs)
-    # pipeline.set_model_bounds("CatTime", bounds_cat)
-    # pipeline.set_model_info("CatSetTime", "pairs", [(1,2), (3,4)])
-    # pipeline.fit_all_models(1)
-    # pipeline.compare_models("CatSetTime", "CatTime", 0.01)
-    # pipeline.show_condition_fit("CatTime")
-    # pipeline.show_condition_fit("CatSetTime")
+                                "CatTime", "CatSetTime"], 0)
+    pipeline.set_model_bounds("CatSetTime", bounds_cs)
+    pipeline.set_model_bounds("CatTime", bounds_cat)
+    pipeline.set_model_info("CatSetTime", "pairs", [(1,2), (3,4)])
+    pipeline.fit_all_models(solver_params=solver_params)
+    pipeline.compare_models("CatSetTime", "CatTime", 0.01)
+    pipeline.show_condition_fit("CatTime")
+    pipeline.show_condition_fit("CatSetTime")
 
     # path_to_data = "/Users/stevecharczynski/workspace/data/kim"
     # path_to_data = "/projectnb/ecog-eeg/stevechar/data/kim"
@@ -244,7 +243,7 @@ def run_script(cell_range):
     # util.collect_data(cell_range, "cell_fits")
 
 
-run_script(range(2,3))
+# run_script(range(0,2))
 if __name__ == "__main__":
     cell_range = sys.argv[-2:]
     cell_range = list(map(int, cell_range))
