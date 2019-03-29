@@ -18,7 +18,7 @@ class RandomDisplacementBounds(object):
         max_step = np.minimum(self.xmax - x, self.stepsize)
         random_step = np.random.uniform(low=min_step, high=max_step, size=x.shape)
         xnew = x + random_step
-
+        
         return xnew
 
 class AccepterBounds(object):

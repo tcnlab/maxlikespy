@@ -36,7 +36,7 @@ class Time(Model):
         return obj
 
     def model(self, x, plot=False):
-        a, ut, st, o = x[0], x[1], x[2], x[3]
+        a, ut, st, o = x
 
         self.function = (
             (a * np.exp(-np.power(self.t - ut, 2.) / (2 * np.power(st, 2.)))) + o)
@@ -45,6 +45,43 @@ class Time(Model):
     def pso_con(self, x):
         return 1 - (x[0] + x[3])
 
+class SigmaMuTau(Model):
+
+    def __init__(self, data):
+        super().__init__(data)
+        self.spikes = data['spikes']
+        self.param_names = ["sigma", "mu", "tau", "a_1", "a_0"]
+        self.x0 = [100, 100, 100, 1e-5, 1e-5]
+
+    def erfcx(self,x):
+        import autograd.scipy.special as sse
+        if x < 25:
+            return sse.erfc(x) * np.exp(x*x)
+        else:
+            y = 1. / x
+            z = y * y
+            s = y*(1.+z*(-0.5+z*(0.75+z*(-1.875+z*(6.5625-29.53125*z)))))
+            return s * 0.564189583547756287
+
+    def model(self, x, plot=False):
+        # print("in model---------")
+        # print(x)
+        import autograd.scipy.special as sse
+        s, m, tau, a_1, a_0 = x
+        vec_erfcx = np.vectorize(self.erfcx)
+        # fun = a_1*(0.5*l*np.exp(0.5*l*(2*m+l*s*s-2*self.t))*vec_erfcx((m+l*np.power(s, 2.)-self.t)/(np.sqrt(2)*s))) + a_0
+        fun = a_1*np.exp(-0.5*(np.power((self.t-m)/s,2)))*(s/tau)*np.sqrt(np.pi/2)*(
+            np.array(list(map(self.erfcx, (1/np.sqrt(2))*((s/tau)- (self.t-m)/s))))
+        ) + a_0
+        # fun = a_1*(0.5*l*np.exp(0.5*l*(2*m+l*s*s-2*self.t))*np.array(list(map(self.erfcx, ((m+l*np.power(s, 2.)-self.t)/(np.sqrt(2)*s)))))) + a_0
+        return fun
+
+    def objective(self, x):
+        fun = self.model(x)
+        obj = np.sum(self.spikes * (-np.log(fun)) +
+                      (1 - self.spikes) * (-np.log(1 - (fun))))
+        
+        return obj
 
 class Const(Model):
 
@@ -66,7 +103,7 @@ class Const(Model):
         self.x0 = [0.1]
 
     def model(self, x, plot=False):
-        o = x[0]
+        o = x
         return o
 
     def objective(self, x):
