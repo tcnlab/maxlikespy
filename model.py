@@ -19,7 +19,7 @@ class RandomDisplacementBounds(object):
         random_step = np.random.uniform(low=min_step, high=max_step, size=x.shape)
         xnew = x + random_step
 
-        print("xnew is {0}".format(xnew))
+        # print("xnew is {0}".format(xnew))
         return xnew
 
 class AccepterBounds(object):
@@ -29,10 +29,10 @@ class AccepterBounds(object):
 
     def __call__(self, **kwargs):
         x = kwargs["x_new"]
-        print(self.xmin)
-        print("------")
-        print(self.xmax)
-        print("xnew is {0}".format(x))
+        # print(self.xmin)
+        # print("------")
+        # print(self.xmax)
+        # print("xnew is {0}".format(x))
         tmax = bool(np.all(x <= self.xmax))
         tmin = bool(np.all(x >= self.xmin))
 
