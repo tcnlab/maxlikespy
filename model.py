@@ -18,7 +18,8 @@ class RandomDisplacementBounds(object):
         max_step = np.minimum(self.xmax - x, self.stepsize)
         random_step = np.random.uniform(low=min_step, high=max_step, size=x.shape)
         xnew = x + random_step
-        
+
+        print("xnew is {0}".format(xnew))
         return xnew
 
 class AccepterBounds(object):
@@ -28,6 +29,10 @@ class AccepterBounds(object):
 
     def __call__(self, **kwargs):
         x = kwargs["x_new"]
+        print(self.xmin)
+        print("------")
+        print(self.xmax)
+        print("xnew is {0}".format(x))
         tmax = bool(np.all(x <= self.xmax))
         tmin = bool(np.all(x >= self.xmin))
 
@@ -89,17 +94,18 @@ class Model(object):
             if key not in solver_params:
                 raise KeyError("Solver option {0} not set".format(key))
 
-        stepper = RandomDisplacementBounds(self.lb, self.ub)
+        stepper = RandomDisplacementBounds(self.lb, self.ub, stepsize=solver_params["stepsize"])
         accepter = AccepterBounds(self.ub, self.lb)
         if solver_params["use_jac"]:
             minimizer_kwargs = {"method":solver_params["method"], "bounds":self.bounds, "jac":autograd.jacobian(self.objective)}
         else:
-            minimizer_kwargs = {"method":solver_params["method"], "bounds":self.bounds}
+            minimizer_kwargs = {"method":solver_params["method"], "bounds":self.bounds, "jac":False}
 
         second_pass_res = basinhopping(
             self.objective,
             self.x0,
-            disp=False,
+            disp=True,
+            T=1,
             niter=solver_params["niter"],
             accept_test=accepter,
             take_step=stepper,  

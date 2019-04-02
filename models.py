@@ -51,7 +51,7 @@ class SigmaMuTau(Model):
         super().__init__(data)
         self.spikes = data['spikes']
         self.param_names = ["sigma", "mu", "tau", "a_1", "a_0"]
-        self.x0 = [100, 100, 100, 1e-5, 1e-5]
+        self.x0 = [50, 500, 50, 1e-5, 1e-5]
 
     def erfcx(self,x):
         import autograd.scipy.special as sse
@@ -64,6 +64,9 @@ class SigmaMuTau(Model):
             return s * 0.564189583547756287
 
     def model(self, x, plot=False):
+        '''One thing to try is to maybe pull out self.t as a kwarg in optimize, might allow jacobian to be calculated easier
+        '''
+
         # print("in model---------")
         # print(x)
         import autograd.scipy.special as sse
@@ -73,6 +76,9 @@ class SigmaMuTau(Model):
         fun = a_1*np.exp(-0.5*(np.power((self.t-m)/s,2)))*(s/tau)*np.sqrt(np.pi/2)*(
             np.array(list(map(self.erfcx, (1/np.sqrt(2))*((s/tau)- (self.t-m)/s))))
         ) + a_0
+        # fun = a_1*np.exp(-0.5*(np.power((self.t-m)/s,2)))*(s/tau)*np.sqrt(np.pi/2)*(
+        #     vec_erfcx(1/np.sqrt(2)*((s/tau)- (self.t-m)/s))
+        # ) + a_0
         # fun = a_1*(0.5*l*np.exp(0.5*l*(2*m+l*s*s-2*self.t))*np.array(list(map(self.erfcx, ((m+l*np.power(s, 2.)-self.t)/(np.sqrt(2)*s)))))) + a_0
         return fun
 
