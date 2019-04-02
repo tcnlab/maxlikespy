@@ -211,6 +211,11 @@ class AnalysisPipeline(object):
             raise NameError(
                 "Supplied model \"{0}\" has not been fit".format(model_max))
 
+        if len(max_model.param_names) - len(min_model.param_names) < 1:
+            raise ValueError(
+                "Supplied models appear to be uncomparable. min_model has same or greater # of parameters"
+            ) 
+
         print(min_model.fit)
         print(max_model.fit)
         outcome = str(self.lr_test(
@@ -248,6 +253,7 @@ class AnalysisPipeline(object):
             Name must match implementation.
 
         """
+        
         outcomes = {cell: self._do_compare(
             model_min, model_max, cell, p_value) for cell in self.cell_range}
 
