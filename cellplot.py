@@ -90,6 +90,26 @@ def plot_comparison(spikes, model_min, model_max, cell_no):
     plt.xlim(model_max.time_info[0], model_max.time_info[1])
     fig.savefig(fig_name % cell_no)
 
+def plot_raster_spiketrain(summed_spikes, binned_spikes, time_info, cell_no):
+    window = np.arange(
+        time_info[0],
+        time_info[1],
+        1)
+    fig = plt.figure()
+    fig.suptitle("cell " + str(cell_no))
+    fig_name = os.getcwd() + "/results/figs/cell_%d_raster.png" 
+
+    plt.subplot(2, 1, 1)
+    plt.plot(window, smooth_spikes(summed_spikes), label="spike_train")
+    plt.legend(loc="upper right")
+
+    plt.subplot(2, 1, 2)
+    plot_raster(binned_spikes, time_info)
+    plt.xlim(time_info[0], time_info[1])
+    fig.savefig(fig_name % cell_no)
+
+
+
 
 def plot_fit(model):
     """Plot parameter fit over region of interest.

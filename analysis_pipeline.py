@@ -293,3 +293,9 @@ class AnalysisPipeline(object):
             cellplot.plot_cat_fit(
                 extracted_model, cell, self.data_processor.spikes_summed_cat[cell], self.subsample)
             plt.show()
+
+    def show_rasters(self, save=False):
+        for cell in self.cell_range:
+
+            cellplot.plot_raster_spiketrain(self.data_processor.spikes_summed[cell], self.data_processor.spikes_binned[cell], self.data_processor.time_info, cell)
+            plt.show()
