@@ -4,7 +4,7 @@ import scipy.signal
 import os
 
 
-def plot_raster(spikes, time_info, condition=0, conditions=0):
+def plot_raster(spikes, time_info, condition=None, conditions=None):
     """Plots raster of binned spike data.
 
     Parameters
@@ -21,7 +21,7 @@ def plot_raster(spikes, time_info, condition=0, conditions=0):
 
     """
     if condition:
-        scatter_data = np.nonzero(spikes.T * conditions[condition])
+        scatter_data = np.nonzero(spikes.T * conditions[condition].flatten())
     else:
         scatter_data = np.nonzero(spikes.T)
     # scatter_data[0] = np.add(scatter_data[0], time_info[0])
@@ -46,10 +46,12 @@ def plot_cat_fit(model, cell_num, spikes, subsample=0):
 
     for condition in model.conditions:
         if condition:
-            plt.subplot(2, num_conditions, condition + 1)
+            plt.subplot(2, num_conditions, condition)
             plt.plot(window, model.model(model.fit, plot=True, condition=condition), label="fit")
             plt.plot(window,
                      smooth_spikes(spikes, model.num_trials, subsample=subsample, condition=condition), label="spike_train")
+            plt.subplot(2, num_conditions, condition + num_conditions)
+            plot_raster(model.spikes, [model.time_info[0], model.time_info[1]], condition, model.conditions)
 
     fig.savefig(fig_name % cell_num)
 

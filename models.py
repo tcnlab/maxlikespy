@@ -165,6 +165,7 @@ class CatSetTime(Model):
         self.x0 = [500, 100, 0.001, 0.001, 0.001]
         self.spikes = data["spikes"]
         self.info = {}
+        self.xform_cond = None
 
     def model(self, x, plot=False, condition=None):
         pairs = self.info["pairs"]
@@ -172,8 +173,15 @@ class CatSetTime(Model):
         a_1, a_2 = x[3], x[4]
         pair_1 = pairs[0]
         pair_2 = pairs[1]
-        c1 = self.conditions[pair_1[0]] + self.conditions[pair_1[1]]
-        c2 = self.conditions[pair_2[0]] + self.conditions[pair_2[1]]
+        if not self.xform_cond:
+            self.xform_cond = {}
+            self.xform_cond[1] = self.conditions[pair_1[0]] + self.conditions[pair_1[1]]
+            self.xform_cond[2] = self.conditions[pair_2[0]] + self.conditions[pair_2[1]]
+            self.conditions = self.xform_cond
+        c1 = self.conditions[1]
+        c2 = self.conditions[2]
+        # c1 = self.conditions[pair_1[0]] + self.conditions[pair_1[1]]
+        # c2 = self.conditions[pair_2[0]] + self.conditions[pair_2[1]]
 
         if plot:
             if condition==1:
