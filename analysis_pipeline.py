@@ -65,22 +65,7 @@ class AnalysisPipeline(object):
         condition_data = self.data_processor.conditions_dict
         spike_info = self.data_processor.spike_info
         for cell in self.cell_range:
-            if self.subsample:
-                sampled_trials = self._subsample_trials(
-                    self.data_processor.num_trials[cell], self.subsample)
-                num_trials = len(sampled_trials)
-                spikes_binned = self._apply_subsample(
-                    self.data_processor.spikes_binned[cell],
-                    sampled_trials)
-                if condition_data:
-                    conditions = {cond: condition_data[cell][cond][sampled_trials]
-                                  for cond in condition_data[cell]}
-            else:
-                num_trials = self.data_processor.num_trials[cell]
-                spikes_binned = self.data_processor.spikes_binned[cell]
-                if condition_data:
-                    conditions = condition_data[cell]
-
+            num_trials, spikes_binned, conditions = self._select_model_data(cell)
             for model in models_to_fit:
 
                 # data to be passed to models
@@ -108,6 +93,28 @@ class AnalysisPipeline(object):
         """
 
         return spikes[sampled_trials, :]
+
+    def _select_model_data(self, cell):
+        condition_data = self.data_processor.conditions_dict
+        if self.subsample:
+
+            sampled_trials = self._subsample_trials(
+                self.data_processor.num_trials[cell], self.subsample)
+            num_trials = len(sampled_trials)
+            spikes_binned = self._apply_subsample(
+                self.data_processor.spikes_binned[cell],
+                sampled_trials)
+            if condition_data:
+                conditions = {cond: condition_data[cell][cond][sampled_trials]
+                                for cond in condition_data[cell]}
+        else:
+            num_trials = self.data_processor.num_trials[cell]
+            spikes_binned = self.data_processor.spikes_binned[cell]
+            if condition_data:
+                conditions = condition_data[cell]
+
+        return num_trials, spikes_binned, conditions
+    
 
     @staticmethod
     def _subsample_trials(num_trials, subsample):
