@@ -1,7 +1,8 @@
 import numpy as np
 from pyswarm import pso
 from model import Model
-import autograd.numpy as np
+# import autograd.numpy as np
+import numpy as np
 
 
 
@@ -681,3 +682,107 @@ class TimePos(Model):
         fun = (self.a * np.exp(-np.power(self.t - self.ut, 2.) /
                                (2 * np.power(self.st, 2.)))) + self.o + self.p * (np.sum(self.position, axis=0) / self.num_trials)
         return fun
+
+class TimeVariableLength(Model):
+
+    def __init__(self, data):
+        super().__init__(data)
+        self.spikes = data['spikes']
+        self.param_names = ["a_1", "ut", "st", "a_0"]
+        self.x0 = [1e-5, 100, 100, 1e-5]
+
+    def info_callback(self):
+        trial_lengths = self.info["trial_length"]
+        for ind, trial in enumerate(trial_lengths):
+            self.spikes[ind][trial:] = 0
+
+    def objective(self, x):
+
+        fun = self.model(x)
+        obj = np.sum(self.spikes * (-np.log(fun)) +
+                      (1 - self.spikes) * (-np.log(1 - (fun))))
+        
+        return obj
+
+    def model(self, x, plot=False):
+        a, ut, st, o = x
+
+        self.function = (
+            (a * np.exp(-np.power(self.t - ut, 2.) / (2 * np.power(st, 2.)))) + o)
+        return self.function
+
+    def pso_con(self, x):
+        return 1 - (x[0] + x[3])
+
+
+class AbsPosVariable(Model):
+
+    def __init__(self, data):
+        super().__init__(data)
+        self.spikes = data['spikes']
+        self.param_names = ["a_1", "ut", "st", "a_0"]
+        self.x0 = [1e-5, 100, 100, 1e-5]
+
+    def info_callback(self):
+        trial_lengths = self.info["trial_length"]
+        for ind, trial in enumerate(trial_lengths):
+            self.spikes[ind][trial:] = 0
+
+    def objective(self, x):
+
+        fun = self.model(x)
+        obj = np.sum(self.spikes * (-np.log(fun)) +
+                      (1 - self.spikes) * (-np.log(1 - (fun))))
+        
+        return obj
+
+    def model(self, x, plot=False):
+        a, ut, st, o = x
+        # self.pos = np.array(list(map(lambda x: np.array(x), self.info["abs_pos"][11])),dtype=float)
+        self.pos = np.array(self.info["abs_pos"])
+        self.pos2 = np.zeros((59,3993),dtype=float)
+        for trial in range(len(self.pos)):
+            self.pos2[trial][:len(self.pos[trial])] = (np.array(self.pos[trial], dtype=float))
+        
+        self.function = (
+            (a * np.exp(-np.power(self.pos2 - ut, 2.) / (2 * np.power(st, 2.)))) + o)
+        return self.function
+
+    def pso_con(self, x):
+        return 1 - (x[0] + x[3])
+
+class RelPosVariable(Model):
+
+    def __init__(self, data):
+        super().__init__(data)
+        self.spikes = data['spikes']
+        self.param_names = ["a_1", "ut", "st", "a_0"]
+        self.x0 = [1e-5, 100, 100, 1e-5]
+
+    def info_callback(self):
+        trial_lengths = self.info["trial_length"]
+        for ind, trial in enumerate(trial_lengths):
+            self.spikes[ind][trial:] = 0
+
+    def objective(self, x):
+
+        fun = self.model(x)
+        obj = np.sum(self.spikes * (-np.log(fun)) +
+                      (1 - self.spikes) * (-np.log(1 - (fun))))
+        
+        return obj
+
+    def model(self, x, plot=False):
+        a, ut, st, o = x
+        # self.pos = np.array(list(map(lambda x: np.array(x), self.info["abs_pos"][11])),dtype=float)
+        self.pos = np.array(self.info["rel_pos"])
+        self.pos2 = np.zeros((59,3993),dtype=float)
+        for trial in range(len(self.pos)):
+            self.pos2[trial][:len(self.pos[trial])] = (np.array(self.pos[trial], dtype=float))
+        
+        self.function = (
+            (a * np.exp(-np.power(self.pos2 - ut, 2.) / (2 * np.power(st, 2.)))) + o)
+        return self.function
+
+    def pso_con(self, x):
+        return 1 - (x[0] + x[3])

@@ -50,14 +50,16 @@ class AnalysisPipeline(object):
 
     """
 
-    def __init__(self, cell_range, data_processor, models, subsample=0):
+    def __init__(self, cell_range, data_processor, models, subsample=0, split_trials=False):
         self.time_start = time.time()
         self.cell_range = cell_range
         self.data_processor = data_processor
         self.subsample = subsample
+        if split_trials:
+            self.model_dict_even = self._make_models(models, "even")
         self.model_dict = self._make_models(models)
 
-    def _make_models(self, models_to_fit):
+    def _make_models(self, models_to_fit, even_odd=None):
         """Initializes and creates dict of models to fit.
 
         """
@@ -78,21 +80,15 @@ class AnalysisPipeline(object):
                 if spike_info:
                     model_data['spike_info'] = spike_info[str(cell)]
                 # this creates an instance of class "model" in the module "models"
-                try:                
-                    model_instance = getattr(models, model)(model_data)
-                    model_dict[model][cell] = model_instance
-                except:
-                    raise NameError(
-                        "Supplied model \"{0}\" does not exist".format(model))
+                model_instance = getattr(models, model)(model_data)
+                model_dict[model][cell] = model_instance
+                # try:                
+                   
+                # except:
+                #     raise NameError(
+                #         "Supplied model \"{0}\" does not exist".format(model))
 
         return model_dict
-
-    def _apply_subsample(self, spikes, sampled_trials):
-        """Returns spikes for the chosen subset of trials"
-
-        """
-
-        return spikes[sampled_trials, :]
 
     def _select_model_data(self, cell):
         condition_data = self.data_processor.conditions_dict
@@ -101,9 +97,7 @@ class AnalysisPipeline(object):
             sampled_trials = self._subsample_trials(
                 self.data_processor.num_trials[cell], self.subsample)
             num_trials = len(sampled_trials)
-            spikes_binned = self._apply_subsample(
-                self.data_processor.spikes_binned[cell],
-                sampled_trials)
+            spikes_binned = self.data_processor.spikes_binned[cell][sampled_trials, :]
             if condition_data:
                 conditions = {cond: condition_data[cell][cond][sampled_trials]
                                 for cond in condition_data[cell]}
@@ -112,6 +106,8 @@ class AnalysisPipeline(object):
             spikes_binned = self.data_processor.spikes_binned[cell]
             if condition_data:
                 conditions = condition_data[cell]
+            else:
+                conditions = None
 
         return num_trials, spikes_binned, conditions
     
@@ -150,14 +146,63 @@ class AnalysisPipeline(object):
 
         return True
 
-    def set_model_info(self, model, name, data):
+    def set_model_info(self, model, name, data, per_cell=False):
         for cell in self.cell_range:
             if model in self.model_dict:
-                self.model_dict[model][cell].set_info(name, data)
+                if per_cell:
+                    self.model_dict[model][cell].set_info(name, data[cell])
+                else:
+                    self.model_dict[model][cell].set_info(name, data)
             else:
                 raise ValueError("model does not match supplied models")
 
         return True
+
+    def _get_even_odd_trials(self, cell, even):
+        if even:
+            return self.data_processor.spikes_binned[cell][::2]
+        else:
+            return self.data_processor.spikes_binned[cell][1::2]
+
+    def fit_even_odd(self, solver_params=None):
+        fits_even, fits_odd = {}, {}
+        lls_even, lls_odd = {}, {}
+        for cell in self.cell_range:
+            print(cell)
+            fits_even[cell] = {}
+            fits_odd[cell] = {}
+            lls_even[cell], lls_odd[cell] = {}, {}
+            for model in self.model_dict:
+                model_instance = self.model_dict[model][cell]
+                if model_instance.bounds is None:
+                    raise ValueError("model \"{0}\" bounds not yet set".format(model))
+
+                #Even trials
+                model_instance.spikes = self._get_even_odd_trials(cell, True)
+                print("fitting {0}".format(model))
+                model_instance.fit_params(solver_params)
+
+                # Build dict for json dump, json requires list instead of ndarray
+                param_dict = {param: model_instance.fit.tolist()[index] 
+                    for index, param in enumerate(model_instance.param_names)}
+                fits_even[cell][model_instance.__class__.__name__] = param_dict
+                lls_even[cell][model_instance.__class__.__name__] = model_instance.fun
+
+                # Odd trials
+                model_instance.spikes = self._get_even_odd_trials(cell, False)
+                print("fitting {0}".format(model))
+                model_instance.fit_params(solver_params)
+                param_dict = {param: model_instance.fit.tolist()[index] 
+                    for index, param in enumerate(model_instance.param_names)}
+                fits_odd[cell][model_instance.__class__.__name__] = param_dict
+                lls_odd[cell][model_instance.__class__.__name__] = model_instance.fun
+
+
+            util.save_data(fits_even, "cell_fits_even", cell=cell)
+            util.save_data(lls_even, "log_likelihoods_even", cell=cell)
+
+            util.save_data(fits_odd, "cell_fits_odd", cell=cell)
+            util.save_data(lls_odd, "log_likelihoods_odd", cell=cell)     
 
     def fit_all_models(self, solver_params=None):
         """Fits parameters for all models then saves to disk.
@@ -204,7 +249,7 @@ class AnalysisPipeline(object):
         return True
 
     def _do_compare(self, model_min, model_max, cell, p_value):
-        """Internally runs likelhood ratio test.
+        """Runs likelhood ratio test.
 
         """
         try:
@@ -226,9 +271,10 @@ class AnalysisPipeline(object):
         print(min_model.fit)
         print(max_model.fit)
         outcome = str(self.lr_test(
-            min_model,
-            max_model,
-            p_value
+            min_model.fun,
+            max_model.fun,
+            p_value,
+            len(max_model.param_names) - len(min_model.param_names)
         ))
         outcome_dict = {cell:
                         {max_model.__class__.__name__+"_"+min_model.__class__.__name__: outcome}}
@@ -266,7 +312,38 @@ class AnalysisPipeline(object):
 
         return True
 
-    def lr_test(self, model_min, model_max, p_threshold):
+    def compare_even_odd(self, model_min, model_max, p_threshold):
+        for cell in self.cell_range:
+            oddpath = os.getcwd()+"/results/log_likelihoods_odd_{0}.json".format(cell)
+            evenpath = os.getcwd()+"/results/log_likelihoods_even_{0}.json".format(cell)
+
+            if os.path.exists(oddpath) and os.path.exists(evenpath):
+                with open(oddpath) as f:
+                    odd_ll = json.load(f)
+                with open(evenpath) as f:
+                    even_ll = json.load(f)
+            else:
+                raise FileNotFoundError(
+                    "Even or odd log likelihoods not found"
+                ) 
+            min_model = self.model_dict[model_min][cell]
+            max_model = self.model_dict[model_max][cell]
+            delta_params = len(max_model.param_names) - len(min_model.param_names)
+            outcome_odd = self.lr_test(odd_ll[str(cell)][model_min], odd_ll[str(cell)][model_max], p_threshold, delta_params)
+            outcome_even = self.lr_test(even_ll[str(cell)][model_min], even_ll[str(cell)][model_max], p_threshold, delta_params)
+            odd_dict = {cell:
+                {max_model.__class__.__name__+"_"+min_model.__class__.__name__: str(outcome_odd)}}
+            even_dict = {cell:
+                {max_model.__class__.__name__+"_"+min_model.__class__.__name__: str(outcome_even)}}
+            util.save_data(data=odd_dict,
+                    filename="model_comparisons_odd",
+                    cell=cell)
+            util.save_data(data=even_dict,
+                    filename="model_comparisons_even",
+                    cell=cell)
+
+
+    def lr_test(self, ll_min, ll_max, p_threshold, delta_params):
         """Performs likelihood ratio test.
 
         Parameters
@@ -284,12 +361,9 @@ class AnalysisPipeline(object):
             True if test passes.
 
         """
-        llmin = model_min.fun
-        llmax = model_max.fun
-        delta_params = len(model_max.param_names) - len(model_min.param_names)
-        lr = -2 * (llmax - llmin)  # log-likelihood ratio
+        lr = -2 * (ll_max - ll_min)  # log-likelihood ratio
         p = chi2.sf(lr, delta_params)
-        print(llmin, llmax, delta_params)
+        print(ll_min, ll_max, delta_params)
         print("p-value is: " + str(p))
         return p < p_threshold
 

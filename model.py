@@ -78,7 +78,7 @@ class Model(object):
         self.num_trials = data['num_trials']
         self.bounds = None
         self.x0 = None
-        self.info = None
+        self.info = {}
 
     def fit_params(self, solver_params):
         """Fit model paramters using Particle Swarm Optimization then SciPy's minimize.
@@ -191,6 +191,8 @@ class Model(object):
 
     def set_info(self, name, data):
         self.info[name] = data
+        if "info_callback" in dir(self):
+            self.info_callback()
 
         return True
 
