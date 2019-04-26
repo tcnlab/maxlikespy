@@ -1,20 +1,17 @@
 # Maximum Likelihood in Python
 
-This project is a translation of Matlab code that accepts/rejects maximum likelihood models of neural spike trains.
-
-## Note
-This project is a WIP.
-
+This project is a translation of Matlab code that fits and accepts/rejects maximum likelihood models of neural spike trains.
+Parameter fitting is performed using SciPy's implementation of basinhopping - a global optimization algorithm.
 
 ## Getting Started
 
-Clone repo locally.
+pip install maxlikespy
 
 ### Prerequisites
 ```
 numpy 
 scipy
-pyswarm
+autograd
 
 ```
 ## Data Formatting
@@ -25,9 +22,11 @@ In addition to spikes, "number_of_trials.json" must be created to denote how man
 
 Supplentary information supported currently:
   
-  A file "conditions.json" including integer labels per cell and trial.
+  "trial_lengths.json" - per trial trial lengths in case trial lengths are not fixed.
   
-  A file "spike_info.json", a json-serialized dict containing labeled information on a millisecond resolution (such as animal position).
+  "conditions.json" - integer labels per cell and trial.
+  
+  "spike_info.json" - json-serialized dict containing labeled information on a millisecond resolution (such as animal position).
   
 Examples for these files will be provided in /examples.
 
@@ -40,19 +39,14 @@ An instance of two required classes must be initialized:
   `DataProcessor(path, cell_range, time_info=None)` where
   * path - absolute file path to data folder
   * cell_range - range indicating the first and last cell to be analyzed
-  * time_info - An instance of a helper class describing the experimental time range initialized as `RegionInfo(low_bound, high_bound)`
+  * time_info - An array describing the experimental time range `[0, 1000]`
   
- `AnalysisPipeline(cell_range, data_processor, models, subsample, swarm_params=None)`where
+ `AnalysisPipeline(cell_range, data_processor, models, subsample)`where
  * cell_range - as above
  * data_processor - the previously initialized DataProcessor object
  * models - list of models to be fit, as strings.
  * subsample - float signifying percentage of trials to be used, 0 if all are desired
- * swarm params - optional dict the user can provide if overriding the particle swarm solver's parameters is desired. this takes the form: 
- ```
- "phip" : 0.5,"phig" : 0.5, "omega" : 0.5,"minstep" : 1e-8, "minfunc" : 1e-8, "maxiter" : 1000
- ```
- It is recommended by the `pyswarm` documentation to set the first three parameters between 0 and 1. Further documentation can be found on their website.
- 
+
  Typical usage from this stage, for example to fit and compare two nested models called "Time" and "Const", would be to first set your model upper and lower bounds. Bounds are given in the form of a list of tuples for each parameter.
  
  ```
@@ -62,24 +56,38 @@ An instance of two required classes must be initialized:
  
  Then fit all models, where number of iterations is the number of times the solver should run without finding a better parameter fit.
  
- `pipeline.fit_all_models(number_of_iterations)`
- 
+ `pipeline.fit_all_models(solver_params)`
+
+solver_params is a dict containing various solver parameters:
+```
+solver_params = {
+        "niter": 100,
+        "stepsize": 1000,
+        "interval": 10,
+        "method": "TNC",
+        "use_jac": True,
+    }
+ ```
+These params are as described in the SciPy documentation [https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.basinhopping.html].
+
+If `use_jac` is `True`, Autograd [https://github.com/HIPS/autograd] will be used to provide the jacobian of your model's objective function to the solver. Autograd requires variety of constraints on your objective function to work and their documentation must be read.
+
 Finally running
 
 `pipeline.compare_models(min_model="Const", max_model="Time", p_value=0.01)`
 
 will perform a likelhihood ratio test on the supplied models.
 
-These functions will save off in /results a plot of model comparisons and json files containing the outcome of the likelihood ratio test, parameter fits, and likelhihoods per cell. 
+These functions will save off in /results a plot of model comparisons and json files containing the outcome of the likelihood ratio test, parameter fits, and likelihoods per cell. 
 
 ## Adding custom models
 
-New models should be added to models.py and inherit the Model base class as well as implement all parent methods. A model, "Time", consisting of a guassian firing field in addition to a constant firing field is provided for example.
+New models should be added to models.py and inherit the Model base class as well as implement all parent methods. A model, "Gaussian", consisting of a guassian firing field in addition to a constant firing field is provided for example.
 
 
 ## Built With
 
-* [pyswarm](https://pythonhosted.org/pyswarm/) - Particle swarm solver used
+* [autograd](https://github.com/HIPS/autograd) - Automatic differentiation package for improved solver performance.
 
 
 ## Authors
