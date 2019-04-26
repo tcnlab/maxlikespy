@@ -9,4 +9,9 @@ setup(name='maxlikespy',
       license='MIT',
       packages=['maxlikespy'],
       intall_requires=['autograd, numpy, scipy'],
+      classifiers=(
+          "Programming Language :: Python :: 3",
+          "Intended Audience :: Science/Research",
+          "Topic :: Science/Engineering :: Information Analysis",
+      ),
       zip_safe=False)
