@@ -6,3 +6,4 @@ scratch/
 .ipynb_checkpoints/
 .vscode/
 *.ipynb
+models.py

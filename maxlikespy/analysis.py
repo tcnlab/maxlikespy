@@ -2,12 +2,17 @@ import maxlikespy.plotting as cellplot
 import maxlikespy.util as util
 import maxlikespy.models as models
 import time
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import json
 import sys
 from scipy.stats import chi2
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+if os.environ.get('DISPLAY', '') == '':
+    print('no display found. Using non-interactive Agg backend')
+    mpl.use('Agg')
+import errno
 
 
 class AnalysisPipeline(object):
@@ -450,18 +455,6 @@ class AnalysisPipeline(object):
             cellplot.plot_raster_spiketrain(
                 self.data_processor.spikes_summed[cell], self.data_processor.spikes_binned[cell], self.data_processor.time_info, cell)
             plt.show()
-
-import numpy as np
-import os
-import matplotlib as mpl
-if os.environ.get('DISPLAY', '') == '':
-    print('no display found. Using non-interactive Agg backend')
-    mpl.use('Agg')
-import time
-import sys
-import json
-import errno
-
 
 class DataProcessor(object):
 
