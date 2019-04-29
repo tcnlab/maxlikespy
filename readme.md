@@ -76,7 +76,7 @@ Finally running
 
 `pipeline.compare_models(min_model="Const", max_model="Time", p_value=0.01)`
 
-will perform a likelhihood ratio test on the supplied models.
+will perform a likelihood ratio test on the supplied models.
 
 These functions will save off in /results a plot of model comparisons and json files containing the outcome of the likelihood ratio test, parameter fits, and likelihoods per cell. 
 
