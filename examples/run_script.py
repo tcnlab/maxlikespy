@@ -35,6 +35,7 @@ def run_script(cell_range):
     pipeline.fit_all_models(solver_params=solver_params)
     pipeline.compare_models("Const", "Time", 0.01)
 
+run_script(range(10,12))
 if __name__ == "__main__":
     cell_range = sys.argv[-2:]
     cell_range = list(map(int, cell_range))

@@ -21,10 +21,7 @@ class Gaussian(Model):
 
     def __init__(self, data):
         super().__init__(data)
-        # self.spikes = data['spikes']
         self.param_names = ["a_1", "ut", "st", "a_0"]
-        # self.x0 = [1e-5, 100, 100, 1e-5]
-
 
     def objective(self, x):
         fun = self.model(x)
@@ -38,4 +35,5 @@ class Gaussian(Model):
 
         self.function = (
             (a * np.exp(-np.power(self.t - ut, 2.) / (2 * np.power(st, 2.)))) + o)
+            
         return self.function
