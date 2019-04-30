@@ -27,7 +27,7 @@ def get_data(filename, cell): #add try
 
 def update_comparisons(cell, model, result, odd_even=False):
     if odd_even and type(odd_even) == str:
-        path = os.getcwd() + "/results/model_comparisons_{0}_{1}.json".format(cell, odd_even)
+        path = os.getcwd() + "/results/model_comparisons_{0}_{1}.json".format(odd_even, cell)
     else:
         path = os.getcwd() + "/results/model_comparisons_{0}.json".format(cell)
     if os.path.exists(path):
