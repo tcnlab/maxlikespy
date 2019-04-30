@@ -1,17 +1,17 @@
+import matplotlib as mpl
+import os
+if os.environ.get('DISPLAY', '') == '':
+    print('no display found. Using non-interactive Agg backend')
+    mpl.use('Agg')
 import maxlikespy.plotting as cellplot
 import maxlikespy.util as util
 import maxlikespy.models as models
 import time
 import numpy as np
-import os
 import json
 import sys
 from scipy.stats import chi2
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-if os.environ.get('DISPLAY', '') == '':
-    print('no display found. Using non-interactive Agg backend')
-    mpl.use('Agg')
 import errno
 
 
