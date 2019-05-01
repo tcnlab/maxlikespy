@@ -59,10 +59,10 @@ class Model(object):
     ----------
     spikes : ndarray
         Array of binary spike train data, of dimension (trials × time).
-    time_info : ndarray
+    window : ndarray
         Array containing time information. Either two elements or of size proportional to number of trials.
     t : numpy.ndarray
-        Array of 1ms timeslices of size specified by time_info.
+        Array of 1ms timeslices of size specified by window.
     fit : list
         List of parameter fits after fitting process has been completed, initially None.
     fun : float
@@ -83,9 +83,9 @@ class Model(object):
     """
 
     def __init__(self, data):
-        self.time_info = data['time_info']
-        min_time = min(self.time_info[:,0])
-        max_time = max(self.time_info[:,1])
+        self.window = data['window']
+        min_time = min(self.window[:,0])
+        max_time = max(self.window[:,1])
         self.spikes = data["spikes"]
         self.t = np.arange(min_time, max_time, 1)
         self.num_trials = data['num_trials']

@@ -23,7 +23,7 @@ class DataProcessor(object):
     ----------
     path : str
         Path to data directory. Must contain a spikes subdirectory with spikes in ms.
-    time_info : ndarray
+    window : ndarray
         Array that holds timing information including the beginning and
         end of the region of interest and the time bin. All in milliseconds.
         If not supplied, it is assumed that trial lengths are unequal and will be loaded from file.
@@ -34,7 +34,7 @@ class DataProcessor(object):
     ----------
     path : str
         Path to data directory. Must contain a spikes subdirectory with spikes in ms.
-    time_info : ndarray
+    window : ndarray
         Array that holds timing information including the beginning and
         end of the region of interest and the time bin. All in milliseconds.
     cell_range : range
@@ -58,7 +58,7 @@ class DataProcessor(object):
 
     """
 
-    def __init__(self, path, cell_range, time_info=None):
+    def __init__(self, path, cell_range, window=None):
         self._check_results_dir()
         self.path = path
         self.cell_range = cell_range
@@ -70,17 +70,17 @@ class DataProcessor(object):
             self.num_conditions = len(
                 set([item for sublist in list(conditions.values()) for item in sublist]))
         self.conditions_dict = self._associate_conditions(conditions)
-        # if time_info is not provided, a default window will be constructed
+        # if window is not provided, a default window will be constructed
         # based off the min and max values found in the data
-        if time_info and len(time_info) == 2:
+        if window and len(window) == 2:
             print("Time window provided. Assuming all trials are of equal length")
-            min_time = np.full(max(self.num_trials), time_info[0])
-            max_time = np.full(max(self.num_trials), time_info[1])
-            self.time_info = np.array(list(zip(min_time, max_time)))
-        elif not time_info:
-            self.time_info = self._extract_trial_lengths()
-        # if self.time_info is None:
-        #     self.time_info = self._set_default_time()
+            min_time = np.full(max(self.num_trials), window[0])
+            max_time = np.full(max(self.num_trials), window[1])
+            self.window = np.array(list(zip(min_time, max_time)))
+        elif not window:
+            self.window = self._extract_trial_lengths()
+        # if self.window is None:
+        #     self.window = self._set_default_time()
         self.spike_info = self._extract_spike_info()
         self.spikes_binned = self._bin_spikes()
         self.spikes_summed = self._sum_spikes()
@@ -247,7 +247,7 @@ class DataProcessor(object):
         """Bins spikes within the given time range into 1 ms bins.
 
         """
-        lower_bounds, upper_bounds = self.time_info[:, 0], self.time_info[:, 1]
+        lower_bounds, upper_bounds = self.window[:, 0], self.window[:, 1]
         total_bins = int(max(upper_bounds) - min(lower_bounds))
         spikes_binned = {}
         for cell in self.spikes:
@@ -351,7 +351,7 @@ class Pipeline(object):
                 # data to be passed to models
                 model_data = {}
                 model_data['spikes'] = spikes_binned
-                model_data['time_info'] = self.data_processor.time_info
+                model_data['window'] = self.data_processor.window
                 model_data['num_trials'] = num_trials
                 if condition_data:
                     model_data['conditions'] = conditions
@@ -742,5 +742,5 @@ class Pipeline(object):
         for cell in self.cell_range:
 
             cellplot.plot_raster_spiketrain(
-                self.data_processor.spikes_summed[cell], self.data_processor.spikes_binned[cell], self.data_processor.time_info, cell)
+                self.data_processor.spikes_summed[cell], self.data_processor.spikes_binned[cell], self.data_processor.window, cell)
             plt.show()

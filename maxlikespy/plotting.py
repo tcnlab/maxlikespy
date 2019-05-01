@@ -11,7 +11,7 @@ def plot_raster(spikes, shift, condition=None, conditions=None):
     ----------
     spikes : ndarray
         Binned spike data for the given cell
-    time_info : RegionInfo
+    window : RegionInfo
         Object that holds timing information including the beginning and
         end of the region of interest. All in milliseconds.
     condition : int
@@ -43,8 +43,8 @@ def plot_cat_fit(model, cell_num, spikes, subsample=0):
     fig_name = "results/figs/cell_%d_" + model.__class__.__name__ + ".png"
     plt.legend(loc="upper left")
     window = np.arange(
-            model.time_info[0],
-            model.time_info[1],
+            model.window[0],
+            model.window[1],
             1)
 
     for condition in model.conditions:
@@ -54,7 +54,7 @@ def plot_cat_fit(model, cell_num, spikes, subsample=0):
             plt.plot(window,
                      smooth_spikes(spikes, model.num_trials, subsample=subsample, condition=condition), label="spike_train")
             plt.subplot(2, num_conditions, condition + num_conditions)
-            plot_raster(model.spikes, [model.time_info[0], model.time_info[1]], condition, model.conditions)
+            plot_raster(model.spikes, [model.window[0], model.window[1]], condition, model.conditions)
 
     fig.savefig(fig_name % cell_num)
 
@@ -71,8 +71,8 @@ def plot_comparison(spikes, model_min, model_max, cell_no):
         Numeric label of cell, used for plot title.
 
     """
-    min_time = min(model_min.time_info[:,0])
-    max_time = max(model_max.time_info[:,1])
+    min_time = min(model_min.window[:,0])
+    max_time = max(model_max.window[:,1])
     window = np.arange(min_time, max_time,
         1)
     fig = plt.figure()
@@ -92,10 +92,10 @@ def plot_comparison(spikes, model_min, model_max, cell_no):
     plt.xlim(min_time, max_time)
     fig.savefig(fig_name % cell_no)
 
-def plot_raster_spiketrain(summed_spikes, binned_spikes, time_info, cell_no):
+def plot_raster_spiketrain(summed_spikes, binned_spikes, window, cell_no):
     window = np.arange(
-        time_info[0],
-        time_info[1],
+        window[0],
+        window[1],
         1)
     fig = plt.figure()
     fig.suptitle("cell " + str(cell_no))
@@ -106,8 +106,8 @@ def plot_raster_spiketrain(summed_spikes, binned_spikes, time_info, cell_no):
     plt.legend(loc="upper right")
 
     plt.subplot(2, 1, 2)
-    plot_raster(binned_spikes, time_info)
-    plt.xlim(time_info[0], time_info[1])
+    plot_raster(binned_spikes, window)
+    plt.xlim(window[0], window[1])
     fig.savefig(fig_name % cell_no)
 
 def plot_fit(model, window):
