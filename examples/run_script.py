@@ -25,7 +25,7 @@ def run_script(cell_range):
     bounds_c = {
         "a_0": [10**-10, 1 / 2]
     }
-    pipeline = analysis.AnalysisPipeline(cell_range, data_processor, [
+    pipeline = analysis.Pipeline(cell_range, data_processor, [
                                 "Const", "Time"], 0)
     pipeline.set_model_bounds("Time", bounds_t)
     pipeline.set_model_bounds("Const", bounds_c)

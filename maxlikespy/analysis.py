@@ -298,7 +298,7 @@ class DataProcessor(object):
         with open((os.getcwd() + path + "/{0}.json").format(filename), 'w') as f:
             json.dump(attribute, f)
 
-class AnalysisPipeline(object):
+class Pipeline(object):
 
     """Performs fitting procedure and model comparison for all cells.
 
