@@ -511,8 +511,12 @@ class Pipeline(object):
                 model_instance = self.model_dict[model][cell]
                 if model_instance.bounds is None:
                     raise ValueError(
-                        "model \"{0}\" bounds not yet set".format(model))
-
+                        "model \"{0}\" bounds not yet set".format(model)
+                    )
+                if model_instance.x0 is None:
+                    raise ValueError(
+                        "model \"{0}\" x0 not yet set".format(model)
+                    )
                 # Even trials
                 model_instance.spikes = self._get_even_odd_trials(cell, True)
                 print("fitting {0}".format(model))
@@ -555,8 +559,9 @@ class Pipeline(object):
                 "stepsize": 100,
                 "interval": 10,
                 "method": "TNC",
-                "use_jac": True,
+                "use_jac": False,
             }
+    
         cell_fits = {}
         cell_lls = {}
 
@@ -568,7 +573,12 @@ class Pipeline(object):
                 model_instance = self.model_dict[model][cell]
                 if model_instance.bounds is None:
                     raise ValueError(
-                        "model \"{0}\" bounds not yet set".format(model))
+                        "model \"{0}\" bounds not yet set".format(model)
+                    )
+                if model_instance.x0 is None:
+                    raise ValueError(
+                        "model \"{0}\" x0 not yet set".format(model)
+                    )
 
                 print("Fitting {0}".format(model))
                 model_instance.fit_params(solver_params)
@@ -679,11 +689,7 @@ class Pipeline(object):
                 cell)][model_max_name], p_threshold, delta_params)
             maxname = max_model.__class__.__name__
             minname = min_model.__class__.__name__
-            odd_dict = {cell:{maxname+"_"+minname: str(outcome_odd)}}
-            even_dict = {cell:{maxname+"_"+minname: str(outcome_even)}}
             comparison_name = max_model.__class__.__name__+"_"+min_model.__class__.__name__
-            # util.update_comparisons(str(cell), comparison_name, odd_dict, "odd")
-            # util.update_comparisons(str(cell), comparison_name, even_dict, "even")
             util.update_comparisons(str(cell), comparison_name, str(outcome_odd), "odd")
             util.update_comparisons(str(cell), comparison_name, str(outcome_even), "even")
 
