@@ -12,6 +12,7 @@ pip install maxlikespy
 numpy 
 scipy
 autograd
+matplotlib
 
 ```
 ## Data Formatting
@@ -36,10 +37,10 @@ In /examples there is an example script going through a full analysis routine wi
 
 An instance of two required classes must be initialized:
 
-  `DataProcessor(path, cell_range, time_info=None)` where
+  `DataProcessor(path, cell_range, window=None)` where
   * path - absolute file path to data folder
   * cell_range - range indicating the first and last cell to be analyzed
-  * time_info - An array describing the experimental time range `[0, 1000]`
+  * window - An array describing the experimental time range `[0, 1000]`
   
  `AnalysisPipeline(cell_range, data_processor, models, subsample)`where
  * cell_range - as above
@@ -47,11 +48,20 @@ An instance of two required classes must be initialized:
  * models - list of models to be fit, as strings.
  * subsample - float signifying percentage of trials to be used, 0 if all are desired
 
- Typical usage from this stage, for example to fit and compare two nested models called "Time" and "Const", would be to first set your model upper and lower bounds. Bounds are given in the form of a list of tuples for each parameter.
+Typical usage from this stage, for example to fit and compare two nested models called "Time" and "Const", would be to first set your model upper and lower bounds. Bounds are given in the form of a dict of tuples for each parameter.
  
- ```
- pipeline.set_model_bounds("Time", bounds_t)
- pipeline.set_model_bounds("Const", bounds_c)
+```
+bounds_t = {
+  "a_1": [0, 1 / 2],
+  "ut": [-1000,10000],
+  "st": [100, 10000],
+  "a_0": [10**-10, 1 / 2]
+}
+bounds_c = {
+  "a_0": [10**-10, 1 / 2]
+}
+pipeline.set_model_bounds("Time", bounds_t)
+pipeline.set_model_bounds("Const", bounds_c)
  ```
  
  Then fit all models, where number of iterations is the number of times the solver should run without finding a better parameter fit.
