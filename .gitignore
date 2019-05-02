@@ -5,6 +5,5 @@ __pycache__/
 scratch/
 .ipynb_checkpoints/
 .vscode/
-*.ipynb
 models.py
 maxlikespy.egg-info/
