@@ -110,7 +110,7 @@ class Model(object):
 
         """
         # validates solver_params such that it includes all options 
-        param_keys = ["use_jac", "method", "niter", "stepsize", "interval"]
+        param_keys = ["use_jac", "method", "niter", "stepsize", "interval", "T", "disp"]
         for key in param_keys:
             if key not in solver_params:
                 raise KeyError("Solver option {0} not set".format(key))
@@ -125,8 +125,8 @@ class Model(object):
         second_pass_res = basinhopping(
             self.objective,
             self.x0,
-            disp=True,
-            T=1,
+            disp=solver_params["disp"],
+            T=solver_params["T"],
             niter=solver_params["niter"],
             accept_test=accepter,
             take_step=stepper,  
