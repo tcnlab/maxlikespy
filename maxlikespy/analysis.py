@@ -587,7 +587,7 @@ class Pipeline(object):
                               for index, param in enumerate(model_instance.param_names)}
                 cell_fits[cell][model_instance.__class__.__name__] = param_dict
                 cell_lls[cell][model_instance.__class__.__name__] = model_instance.fun
-
+            print("Models fit in {0} seconds".format(time.time() - self.time_start))
             util.save_data({cell:cell_fits[cell]}, "cell_fits", cell=cell)
             util.save_data({cell:cell_lls[cell]}, "log_likelihoods", cell=cell)
 
@@ -627,8 +627,6 @@ class Pipeline(object):
             min_model,
             max_model,
             cell)
-        print("TIME IS")
-        print(time.time() - self.time_start)
         plt.show()
 
         return outcome
