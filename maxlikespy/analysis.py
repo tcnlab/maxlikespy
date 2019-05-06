@@ -5,7 +5,7 @@ if os.environ.get('DISPLAY', '') == '':
     mpl.use('Agg')
 import maxlikespy.plotting as cellplot
 import maxlikespy.util as util
-import maxlikespy.models as models
+import models as models
 import time
 import numpy as np
 import json
