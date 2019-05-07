@@ -51,7 +51,7 @@ def plot_cat_fit(model, cell_num, spikes, subsample=0):
     for condition in model.conditions:
         if condition:
             plt.subplot(2, num_conditions, condition)
-            plt.plot(window, model.model(model.fit, plot=True, condition=condition), label="fit")
+            plt.plot(window, get_model_fit(model, condition=condition), label="fit")
             plt.plot(window,
                      smooth_spikes(spikes, model.num_trials, subsample=subsample, condition=condition), label="spike_train")
             plt.subplot(2, num_conditions, condition + num_conditions)
@@ -121,11 +121,21 @@ def plot_fit(model, window):
 
     """
 
-    fit = model.model(model.fit, plot=True)
+    fit = get_model_fit(model)
     if fit.size == 1:
         plt.plot(window, np.full(model.t.shape, fit), label=model.__class__.__name__ )
     else:
         plt.plot(window, fit, label=model.__class__.__name__)
+
+def get_model_fit(model, **kwargs):
+    has_plot = getattr(model, "plot_model", None)
+    if callable(has_plot):
+        if "condition" in kwargs:
+            return model.plot_model(model.fit, kwargs["condition"])
+        else:
+            return model.plot_model(model.fit, )
+    else:
+        return model.model(model.fit)
 
 def smooth_spikes(spikes, num_trials=0, subsample=0, condition=0):
     """Applys a gaussian blur filter to spike data.
