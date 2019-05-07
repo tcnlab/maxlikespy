@@ -591,7 +591,7 @@ class Pipeline(object):
             util.save_data({cell:cell_fits[cell]}, "cell_fits", cell=cell)
             util.save_data({cell:cell_lls[cell]}, "log_likelihoods", cell=cell)
 
-    def _do_compare(self, model_min_name, model_max_name, cell, p_value):
+    def _do_compare(self, model_min_name, model_max_name, cell, p_value, smoother_value):
         """Runs likelhood ratio test.
 
         """
@@ -626,12 +626,13 @@ class Pipeline(object):
             self.data_processor.spikes_summed[cell],
             min_model,
             max_model,
-            cell)
+            cell,
+            smoother_value=smoother_value)
         plt.show()
 
         return outcome
 
-    def compare_models(self, model_min_name, model_max_name, p_value):
+    def compare_models(self, model_min_name, model_max_name, p_value, smoother_value):
         """Runs likelihood ratio test on likelihoods from given nested model parameters then saves to disk.
 
         Parameters
@@ -647,7 +648,7 @@ class Pipeline(object):
 
         """
         outcomes = {cell: self._do_compare(
-            model_min_name, model_max_name, cell, p_value) for cell in self.cell_range}
+            model_min_name, model_max_name, cell, p_value, smoother_value) for cell in self.cell_range}
 
     def compare_even_odd(self, model_min_name, model_max_name, p_threshold):
         """Runs likelihood ratio test on even and odd trial's likelihoods from given nested model parameters then saves to disk.
@@ -717,7 +718,7 @@ class Pipeline(object):
         print("p-value is: " + str(p))
         return p < p_threshold
 
-    def show_condition_fit(self, model):
+    def show_condition_fit(self, model, smoother_value):
         """Plots data and fits against provided conditions.
 
         Parameters
@@ -730,7 +731,7 @@ class Pipeline(object):
             extracted_model = self.model_dict[model][cell]
 
             cellplot.plot_cat_fit(
-                extracted_model, cell, self.data_processor.spikes_summed_cat[cell], self.subsample)
+                extracted_model, cell, self.data_processor.spikes_summed_cat[cell], self.subsample, smoother_value=smoother_value)
             plt.show()
 
     def show_rasters(self):

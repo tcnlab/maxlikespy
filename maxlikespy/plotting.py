@@ -33,11 +33,13 @@ def plot_raster(spikes, shift, condition=None, conditions=None):
         plt.scatter(np.add(nan_pos[0], shift), nan_pos[1],
                 c="#FFC0CB", marker="o", s=1)
 
-def plot_spike_train(spike_train):
+def plot_spike_train(spike_train, **kwargs):
+    if "smoother_value" in kwargs:
+        plt.plot(smooth_spikes(spike_train, smoother_value=kwargs["smoother_value"]))
+    else:
+        plt.plot(smooth_spikes(spike_train))
 
-    plt.plot(smooth_spikes(spike_train))
-
-def plot_cat_fit(model, cell_num, spikes, subsample=0):
+def plot_cat_fit(model, cell_num, spikes, subsample=0, **kwargs):
     fig = plt.figure()
     num_conditions = len(model.conditions)
     fig.suptitle("cell " + str(cell_num))
@@ -52,14 +54,18 @@ def plot_cat_fit(model, cell_num, spikes, subsample=0):
         if condition:
             plt.subplot(2, num_conditions, condition)
             plt.plot(window, get_model_fit(model, condition=condition), label="fit")
-            plt.plot(window,
-                     smooth_spikes(spikes, model.num_trials, subsample=subsample, condition=condition), label="spike_train")
+            if "smoother_value" in kwargs:
+                plt.plot(window,
+                        smooth_spikes(spikes, kwargs["smoother_value"], num_trials=model.num_trials, subsample=subsample, condition=condition), label="spike_train")
+            else:
+                plt.plot(window,
+                        smooth_spikes(spikes, num_trials=model.num_trials, subsample=subsample, condition=condition), label="spike_train")
             plt.subplot(2, num_conditions, condition + num_conditions)
             plot_raster(model.spikes, [model.window[0], model.window[1]], condition, model.conditions)
 
     fig.savefig(fig_name % cell_num)
 
-def plot_comparison(spikes, model_min, model_max, cell_no):
+def plot_comparison(spikes, model_min, model_max, cell_no, **kwargs):
     """Given two models, produces a comparison figure and saves to disk.
 
     Parameters
@@ -83,8 +89,12 @@ def plot_comparison(spikes, model_min, model_max, cell_no):
 
     plt.subplot(2, 1, 1)
     plot_fit(model_min, window)
-    plt.plot(window, smooth_spikes(
-        spikes, model_max.num_trials), label="spike_train")
+    if "smoother_value" in kwargs:
+        plt.plot(window, smooth_spikes(
+            spikes, kwargs["smoother_value"], model_max.num_trials), label="spike_train")
+    else:
+        plt.plot(window, smooth_spikes(
+            spikes, num_trials=model_max.num_trials), label="spike_train")
     plot_fit(model_max, window)
     plt.legend(loc="upper right")
 
@@ -93,7 +103,7 @@ def plot_comparison(spikes, model_min, model_max, cell_no):
     plt.xlim(min_time, max_time)
     fig.savefig(fig_name % cell_no)
 
-def plot_raster_spiketrain(summed_spikes, binned_spikes, window, cell_no):
+def plot_raster_spiketrain(summed_spikes, binned_spikes, window, cell_no, **kwargs):
     min_time = min(window[:,0])
     max_time = max(window[:,1])
     window = np.arange(min_time, max_time,
@@ -103,7 +113,11 @@ def plot_raster_spiketrain(summed_spikes, binned_spikes, window, cell_no):
     fig_name = os.getcwd() + "/results/figs/cell_%d_raster.png" 
 
     plt.subplot(2, 1, 1)
-    plt.plot(window, smooth_spikes(summed_spikes), label="spike_train")
+    if "smoother_value" in kwargs:
+        plt.plot(window, smooth_spikes(summed_spikes, kwargs["smoother_value"]), label="spike_train")
+    else:
+        plt.plot(window, smooth_spikes(summed_spikes), label="spike_train")
+        
     plt.legend(loc="upper right")
 
     plt.subplot(2, 1, 2)
@@ -137,7 +151,7 @@ def get_model_fit(model, **kwargs):
     else:
         return model.model(model.fit)
 
-def smooth_spikes(spikes, num_trials=0, subsample=0, condition=0):
+def smooth_spikes(spikes, smoother_value=100, num_trials=0, subsample=0, condition=0):
     """Applys a gaussian blur filter to spike data.
 
     Parameters
@@ -151,7 +165,7 @@ def smooth_spikes(spikes, num_trials=0, subsample=0, condition=0):
 
     """
     if not num_trials:
-        return scipy.ndimage.filters.gaussian_filter(spikes, 100)
+        return scipy.ndimage.filters.gaussian_filter(spikes, smoother_value)
 
     if subsample:
         num_trials = int(num_trials / subsample)
@@ -160,4 +174,4 @@ def smooth_spikes(spikes, num_trials=0, subsample=0, condition=0):
     else:
         avg_spikes = spikes / int(num_trials)
 
-    return scipy.ndimage.filters.gaussian_filter(avg_spikes, 100)
+    return scipy.ndimage.filters.gaussian_filter(avg_spikes, smoother_value)
