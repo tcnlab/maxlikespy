@@ -329,12 +329,13 @@ class Pipeline(object):
 
     """
 
-    def __init__(self, cell_range, data_processor, models, subsample=0):
+    def __init__(self, cell_range, data_processor, models, subsample=0, save_dir=None):
         self.time_start = time.time()
         self.cell_range = cell_range
         self.data_processor = data_processor
         self.subsample = subsample
         self.model_dict = self._make_models(models)
+        self.save_dir = save_dir
 
     def _make_models(self, models_to_fit, even_odd=None):
         """Initializes and creates dict of models to fit.
@@ -537,11 +538,11 @@ class Pipeline(object):
                 fits_odd[cell][model_instance.__class__.__name__] = param_dict
                 lls_odd[cell][model_instance.__class__.__name__] = model_instance.fun
 
-            util.save_data({cell:fits_even[cell]}, "cell_fits_even", cell=cell)
-            util.save_data({cell:lls_even[cell]}, "log_likelihoods_even", cell=cell)
+            util.save_data({cell:fits_even[cell]}, "cell_fits_even", path=self.save_dir, cell=cell)
+            util.save_data({cell:lls_even[cell]}, "log_likelihoods_even", path=self.save_dir, cell=cell)
 
-            util.save_data({cell:fits_odd[cell]}, "cell_fits_odd", cell=cell)
-            util.save_data({cell:lls_odd[cell]}, "log_likelihoods_odd", cell=cell)
+            util.save_data({cell:fits_odd[cell]}, "cell_fits_odd", path=self.save_dir, cell=cell)
+            util.save_data({cell:lls_odd[cell]}, "log_likelihoods_odd", path=self.save_dir, cell=cell)
 
     def fit_all_models(self, solver_params=None):
         """Fits parameters for all models then saves to disk.
@@ -588,8 +589,8 @@ class Pipeline(object):
                 cell_fits[cell][model_instance.__class__.__name__] = param_dict
                 cell_lls[cell][model_instance.__class__.__name__] = model_instance.fun
             print("Models fit in {0} seconds".format(time.time() - self.time_start))
-            util.save_data({cell:cell_fits[cell]}, "cell_fits", cell=cell)
-            util.save_data({cell:cell_lls[cell]}, "log_likelihoods", cell=cell)
+            util.save_data({cell:cell_fits[cell]}, "cell_fits", path=self.save_dir, cell=cell)
+            util.save_data({cell:cell_lls[cell]}, "log_likelihoods", path=self.save_dir, cell=cell)
 
     def _do_compare(self, model_min_name, model_max_name, cell, p_value, smoother_value):
         """Runs likelhood ratio test.
@@ -620,7 +621,7 @@ class Pipeline(object):
             len(max_model.param_names) - len(min_model.param_names)
         ))
         comparison_name = max_model.__class__.__name__+"_"+min_model.__class__.__name__
-        util.update_comparisons(str(cell), comparison_name, outcome)
+        util.update_comparisons(str(cell), comparison_name, outcome, path=self.save_dir)
         print(outcome)
         cellplot.plot_comparison(
             self.data_processor.spikes_summed[cell],
@@ -689,8 +690,8 @@ class Pipeline(object):
             maxname = max_model.__class__.__name__
             minname = min_model.__class__.__name__
             comparison_name = max_model.__class__.__name__+"_"+min_model.__class__.__name__
-            util.update_comparisons(str(cell), comparison_name, str(outcome_odd), "odd")
-            util.update_comparisons(str(cell), comparison_name, str(outcome_even), "even")
+            util.update_comparisons(str(cell), comparison_name, str(outcome_odd), path=self.save_dir, odd_even="odd")
+            util.update_comparisons(str(cell), comparison_name, str(outcome_even), path =self.save_dir, odd_even="even")
 
     def lr_test(self, ll_min, ll_max, p_threshold, delta_params):
         """Performs likelihood ratio test.
