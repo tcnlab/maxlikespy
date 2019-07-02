@@ -256,7 +256,7 @@ class DataProcessor(object):
             for trial_index, trial in enumerate(self.spikes[cell]):
                 time_low, time_high = lower_bounds[trial_index], upper_bounds[trial_index]
                 # total_bins = time_high - time_low
-                if type(trial) is float or type(trial) is int:
+                if type(trial) is float or type(trial) is int or type(trial) is np.float64:
                     trial = [trial]
                 for value in trial:
                     if value < time_high and value >= time_low:
@@ -335,7 +335,7 @@ class Pipeline(object):
         self.data_processor = data_processor
         self.subsample = subsample
         self.model_dict = self._make_models(models)
-        self.save_dir = save_dir
+        self.save_dir = util.check_path(save_dir)
 
     def _make_models(self, models_to_fit, even_odd=None):
         """Initializes and creates dict of models to fit.
@@ -518,8 +518,12 @@ class Pipeline(object):
                     raise ValueError(
                         "model \"{0}\" x0 not yet set".format(model)
                     )
+                # these are maintained to be set back later
+                original_window = model_instance.window
+                original_spikes = model_instance.spikes
                 # Even trials
                 model_instance.spikes = self._get_even_odd_trials(cell, True)
+                model_instance.window = original_window[::2]
                 print("fitting {0}".format(model))
                 model_instance.fit_params(solver_params)
 
@@ -531,12 +535,16 @@ class Pipeline(object):
 
                 # Odd trials
                 model_instance.spikes = self._get_even_odd_trials(cell, False)
+                model_instance.window = original_window[1::2]
                 print("fitting {0}".format(model))
                 model_instance.fit_params(solver_params)
                 param_dict = {param: model_instance.fit.tolist()[index]
                               for index, param in enumerate(model_instance.param_names)}
                 fits_odd[cell][model_instance.__class__.__name__] = param_dict
                 lls_odd[cell][model_instance.__class__.__name__] = model_instance.fun
+                # set back to original values
+                model_instance.window = original_window
+                model_instance.spikes = original_spikes
 
             util.save_data({cell:fits_even[cell]}, "cell_fits_even", path=self.save_dir, cell=cell)
             util.save_data({cell:lls_even[cell]}, "log_likelihoods_even", path=self.save_dir, cell=cell)
@@ -591,6 +599,8 @@ class Pipeline(object):
             print("Models fit in {0} seconds".format(time.time() - self.time_start))
             util.save_data({cell:cell_fits[cell]}, "cell_fits", path=self.save_dir, cell=cell)
             util.save_data({cell:cell_lls[cell]}, "log_likelihoods", path=self.save_dir, cell=cell)
+
+            return self.model_dict
 
     def _do_compare(self, model_min_name, model_max_name, cell, p_value, smoother_value):
         """Runs likelhood ratio test.
@@ -667,8 +677,8 @@ class Pipeline(object):
 
         """
         for cell in self.cell_range:
-            oddpath = os.getcwd() + "/results/log_likelihoods_odd_{0}.json".format(cell)
-            evenpath = os.getcwd() + "/results/log_likelihoods_even_{0}.json".format(cell)
+            oddpath = self.save_dir + "/results/log_likelihoods_odd_{0}.json".format(cell)
+            evenpath = self.save_dir + "/results/log_likelihoods_even_{0}.json".format(cell)
 
             if os.path.exists(oddpath) and os.path.exists(evenpath):
                 with open(oddpath) as f:
