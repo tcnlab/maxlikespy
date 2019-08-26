@@ -116,7 +116,11 @@ class DataProcessor(object):
         path = self.path + "/trial_lengths.json"
         try:
             with open(path, 'r') as f:
-                return np.array(json.load(f))
+                trial_lengths = np.array(json.load(f))
+                for i, cell in enumerate(trial_lengths):
+                    trial_lengths[i] = np.array(cell, dtype=int)
+                    # trial_lengths[i][:, 0] = int(trial_lengths[i][:,0])
+                return trial_lengths
         except:
             print("trial_lengths.json not found")
             return None
@@ -247,10 +251,10 @@ class DataProcessor(object):
         """Bins spikes within the given time range into 1 ms bins.
 
         """
-        lower_bounds, upper_bounds = self.window[:, 0], self.window[:, 1]
-        total_bins = int(max(upper_bounds) - min(lower_bounds))
         spikes_binned = {}
         for cell in self.spikes:
+            lower_bounds, upper_bounds = self.window[cell][:, 0], self.window[cell][:, 1]
+            total_bins = int(max(upper_bounds) - min(lower_bounds))
             spikes_binned[cell] = np.zeros(
                 (int(self.num_trials[cell]), total_bins))
             for trial_index, trial in enumerate(self.spikes[cell]):
@@ -263,7 +267,7 @@ class DataProcessor(object):
                         spikes_binned[cell][trial_index][int(
                             value - time_low)] = 1
                 if trial_index < self.num_trials[cell]:
-                    spikes_binned[cell][trial_index][upper_bounds[trial_index]:] = np.nan
+                    spikes_binned[cell][trial_index][int(upper_bounds[trial_index]):] = np.nan
 
         return spikes_binned
 
@@ -352,7 +356,7 @@ class Pipeline(object):
                 # data to be passed to models
                 model_data = {}
                 model_data['spikes'] = spikes_binned
-                model_data['window'] = self.data_processor.window
+                model_data['window'] = self.data_processor.window[cell]
                 model_data['num_trials'] = num_trials
                 if condition_data:
                     model_data['conditions'] = conditions
@@ -600,12 +604,13 @@ class Pipeline(object):
             util.save_data({cell:cell_fits[cell]}, "cell_fits", path=self.save_dir, cell=cell)
             util.save_data({cell:cell_lls[cell]}, "log_likelihoods", path=self.save_dir, cell=cell)
 
-            return self.model_dict
+        return self.model_dict
 
     def _do_compare(self, model_min_name, model_max_name, cell, p_value, smoother_value):
         """Runs likelhood ratio test.
 
         """
+        print("Comparing cell {0}".format(cell))
         try:
             min_model = self.model_dict[model_min_name][cell]
         except:
@@ -752,5 +757,5 @@ class Pipeline(object):
         for cell in self.cell_range:
 
             cellplot.plot_raster_spiketrain(
-                self.data_processor.spikes_summed[cell], self.data_processor.spikes_binned[cell], self.data_processor.window, cell)
+                self.data_processor.spikes_summed[cell], self.data_processor.spikes_binned[cell], self.data_processor.window[cell], cell)
             plt.show()
