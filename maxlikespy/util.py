@@ -50,7 +50,7 @@ def check_path(path):
         save_path = os.getcwd()
 
     if not os.path.exists(save_path+"/results"):
-        os.mkdir(path+"/results")
+        os.mkdir(save_path+"/results")
     
     return save_path
 
