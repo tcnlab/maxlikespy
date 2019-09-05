@@ -72,7 +72,7 @@ class DataProcessor(object):
         self.conditions_dict = self._associate_conditions(conditions)
         # if window is not provided, a default window will be constructed
         # based off the min and max values found in the data
-        if window and len(window) == 2:
+        if window:
             print("Time window provided. Assuming all trials are of equal length")
             min_time = np.full(max(self.num_trials), window[0])
             max_time = np.full(max(self.num_trials), window[1])
@@ -252,9 +252,22 @@ class DataProcessor(object):
 
         """
         spikes_binned = {}
+        max_upper = 0
+        min_lower = np.inf
+        for cell in self.window:
+            if max(cell[:, 1]) > max_upper:
+                max_upper = max(cell[:, 1])
+            if min(cell[:, 0]) < min_lower:
+                min_lower = min(cell[:,0])
+        # max_upper = max(self.window[:][:,1])
+        # min_lower = min(self.window[:][:,0])
+        total_bins = int(max_upper) - int(min_lower)
         for cell in self.spikes:
+            # total_bins = max(self.window[cell][:,1]) - min(self.window[cell][:,0])
+            # lower_bounds, upper_bounds = self.window[:, 0], self.window[:, 1]
+           
             lower_bounds, upper_bounds = self.window[cell][:, 0], self.window[cell][:, 1]
-            total_bins = int(max(upper_bounds) - min(lower_bounds))
+            
             spikes_binned[cell] = np.zeros(
                 (int(self.num_trials[cell]), total_bins))
             for trial_index, trial in enumerate(self.spikes[cell]):
