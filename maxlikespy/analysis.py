@@ -74,9 +74,10 @@ class DataProcessor(object):
         # based off the min and max values found in the data
         if window:
             print("Time window provided. Assuming all trials are of equal length")
-            min_time = np.full(max(self.num_trials), window[0])
-            max_time = np.full(max(self.num_trials), window[1])
-            self.window = np.array(list(zip(min_time, max_time)))
+            num_cells = len(self.cell_range)
+            min_time = np.full((num_cells, max(self.num_trials)), window[0])
+            max_time = np.full((num_cells, max(self.num_trials)), window[1])
+            self.window = np.stack((min_time, max_time), axis=2)
         elif not window:
             self.window = self._extract_trial_lengths()
         # if self.window is None:
@@ -270,7 +271,7 @@ class DataProcessor(object):
             
             spikes_binned[cell] = np.zeros(
                 (int(self.num_trials[cell]), total_bins))
-            for trial_index, trial in enumerate(self.spikes[cell]):
+            for trial_index, trial in enumerate(self.spikes[cell][:self.num_trials[cell]]):
                 time_low, time_high = lower_bounds[trial_index], upper_bounds[trial_index]
                 # total_bins = time_high - time_low
                 if type(trial) is float or type(trial) is int or type(trial) is np.float64:
@@ -280,7 +281,7 @@ class DataProcessor(object):
                         spikes_binned[cell][trial_index][int(
                             value - time_low)] = 1
                 if trial_index < self.num_trials[cell]:
-                    spikes_binned[cell][trial_index][int(upper_bounds[trial_index]):] = np.nan
+                    spikes_binned[cell][trial_index][int(upper_bounds[trial_index]- lower_bounds[trial_index]):] = np.nan
 
         return spikes_binned
 
@@ -491,7 +492,7 @@ class Pipeline(object):
         for cell in self.cell_range:
             if model in self.model_dict:
                 if per_cell:
-                    self.model_dict[model][cell].set_info(name, data[cell])
+                    self.model_dict[model][cell].set_info(name, data[(cell)])
                 else:
                     self.model_dict[model][cell].set_info(name, data)
             else:
@@ -763,7 +764,7 @@ class Pipeline(object):
                 extracted_model, cell, self.data_processor.spikes_summed_cat[cell], self.subsample, smoother_value=smoother_value)
             plt.show()
 
-    def show_rasters(self):
+    def show_rasters(self, save=False):
         """Plots binned spike raster and saves to disk.
 
         """
@@ -771,4 +772,7 @@ class Pipeline(object):
 
             cellplot.plot_raster_spiketrain(
                 self.data_processor.spikes_summed[cell], self.data_processor.spikes_binned[cell], self.data_processor.window[cell], cell)
-            plt.show()
+            if save:
+                plt.savefig(self.save_dir+"cell_{0}_raster.png".format(cell))
+            else:
+                plt.show()
