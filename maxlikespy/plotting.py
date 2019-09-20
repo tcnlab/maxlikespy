@@ -91,7 +91,7 @@ def plot_comparison(spikes, model_min, model_max, cell_no, **kwargs):
     plot_fit(model_min, window)
     if "smoother_value" in kwargs:
         plt.plot(window, smooth_spikes(
-            spikes, kwargs["smoother_value"], model_max.num_trials), label="spike_train")
+            spikes[min_time:max_time], kwargs["smoother_value"], model_max.num_trials), label="spike_train")
     else:
         plt.plot(window, smooth_spikes(
             spikes, num_trials=model_max.num_trials), label="spike_train")
@@ -114,9 +114,9 @@ def plot_raster_spiketrain(summed_spikes, binned_spikes, window, cell_no, **kwar
 
     plt.subplot(2, 1, 1)
     if "smoother_value" in kwargs:
-        plt.plot(window, smooth_spikes(summed_spikes, kwargs["smoother_value"]), label="spike_train")
+        plt.plot(window, smooth_spikes(summed_spikes, kwargs["smoother_value"]))
     else:
-        plt.plot(window, smooth_spikes(summed_spikes), label="spike_train")
+        plt.plot(window, smooth_spikes(summed_spikes))
         
     plt.legend(loc="upper right")
 
