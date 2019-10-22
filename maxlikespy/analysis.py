@@ -59,8 +59,8 @@ class DataProcessor(object):
     """
 
     def __init__(self, path, cell_range, window=None):
-        self._check_results_dir()
         self.path = path
+        self._check_results_dir(path)
         self.cell_range = cell_range
         self.spikes = self._extract_spikes()
         self.num_trials = self._extract_num_trials()
@@ -75,9 +75,15 @@ class DataProcessor(object):
         if window:
             print("Time window provided. Assuming all trials are of equal length")
             num_cells = len(self.cell_range)
-            min_time = np.full((num_cells, max(self.num_trials)), window[0])
-            max_time = np.full((num_cells, max(self.num_trials)), window[1])
-            self.window = np.stack((min_time, max_time), axis=2)
+            self.window = {}
+            for cell in self.cell_range:
+                min_time = np.full((max(self.num_trials)), window[0])
+                max_time = np.full((max(self.num_trials)), window[1])
+                self.window[cell] = np.stack((min_time, max_time), axis=1)
+            # min_time = np.full((num_cells, max(self.num_trials)), window[0])
+            # max_time = np.full((num_cells, max(self.num_trials)), window[1])
+                       
+            # self.window = np.stack((min_time, max_time), axis=2)
         elif not window:
             self.window = self._extract_trial_lengths()
         # if self.window is None:
@@ -87,13 +93,18 @@ class DataProcessor(object):
         self.spikes_summed = self._sum_spikes()
         self.spikes_summed_cat = self._sum_spikes_conditions(conditions)
 
-    def _check_results_dir(self):
+    def _check_results_dir(self, path):
         """Creates directories for artifacts if they don't exist.
 
         """
-        if not os.path.exists(os.getcwd()+"/results"):
-            os.mkdir(os.getcwd()+"/results")
-            os.mkdir(os.getcwd()+"/results/figs")
+    
+        if not os.path.exists(path+"/results"):
+            os.mkdir(path+"/results/")
+        if not os.path.exists(path+"/results/figs/"):
+            os.mkdir(path+"/results/figs/")
+
+
+        
 
     def _set_default_time(self):
         """Parses spikes and finds min and max spike times for bounds.
@@ -115,13 +126,14 @@ class DataProcessor(object):
 
         """
         path = self.path + "/trial_lengths.json"
+        window = {}
         try:
             with open(path, 'r') as f:
                 trial_lengths = np.array(json.load(f))
                 for i, cell in enumerate(trial_lengths):
-                    trial_lengths[i] = np.array(cell, dtype=int)
+                    window[i] = np.array(cell, dtype=int)
                     # trial_lengths[i][:, 0] = int(trial_lengths[i][:,0])
-                return trial_lengths
+                return window
         except:
             print("trial_lengths.json not found")
             return None
@@ -256,10 +268,10 @@ class DataProcessor(object):
         max_upper = 0
         min_lower = np.inf
         for cell in self.window:
-            if max(cell[:, 1]) > max_upper:
-                max_upper = max(cell[:, 1])
-            if min(cell[:, 0]) < min_lower:
-                min_lower = min(cell[:,0])
+            if max(self.window[cell][:, 1]) > max_upper:
+                max_upper = max(self.window[cell][:, 1])
+            if min(self.window[cell][:, 0]) < min_lower:
+                min_lower = min(self.window[cell][:,0])
         # max_upper = max(self.window[:][:,1])
         # min_lower = min(self.window[:][:,0])
         total_bins = int(max_upper) - int(min_lower)
@@ -657,7 +669,8 @@ class Pipeline(object):
             min_model,
             max_model,
             cell,
-            smoother_value=smoother_value)
+            smoother_value=smoother_value,
+            save_path=self.save_dir)
         plt.show()
 
         return outcome
