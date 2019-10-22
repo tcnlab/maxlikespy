@@ -84,14 +84,15 @@ def plot_comparison(spikes, model_min, model_max, cell_no, **kwargs):
         1)
     fig = plt.figure()
     fig.suptitle("cell " + str(cell_no))
-    fig_name = os.getcwd() + "/results/figs/cell_%d_" + model_min.__class__.__name__ + \
+    fig_folder = kwargs["save_path"] + "/results/figs/"
+    fig_name = fig_folder + "/cell_%d_" + model_min.__class__.__name__ + \
         "_" + model_max.__class__.__name__ + ".png"
 
     plt.subplot(2, 1, 1)
     plot_fit(model_min, window)
     if "smoother_value" in kwargs:
         plt.plot(window, smooth_spikes(
-            spikes[min_time:max_time], kwargs["smoother_value"], model_max.num_trials), label="spike_train")
+            spikes[:max_time], kwargs["smoother_value"], model_max.num_trials), label="spike_train")
     else:
         plt.plot(window, smooth_spikes(
             spikes, num_trials=model_max.num_trials), label="spike_train")
@@ -114,9 +115,9 @@ def plot_raster_spiketrain(summed_spikes, binned_spikes, window, cell_no, **kwar
 
     plt.subplot(2, 1, 1)
     if "smoother_value" in kwargs:
-        plt.plot(window, smooth_spikes(summed_spikes, kwargs["smoother_value"]))
+        plt.plot(window, smooth_spikes(summed_spikes, kwargs["smoother_value"],num_trials=binned_spikes.shape[0]))
     else:
-        plt.plot(window, smooth_spikes(summed_spikes))
+        plt.plot(window, smooth_spikes(summed_spikes, num_trials=binned_spikes.shape[0]))
         
     plt.legend(loc="upper right")
 
@@ -139,7 +140,7 @@ def plot_fit(model, window):
     if fit.size == 1:
         plt.plot(window, np.full(model.t.shape, fit), label=model.__class__.__name__ )
     else:
-        plt.plot(window, fit, label=model.__class__.__name__)
+        plt.plot(window, fit * 1000, label=model.__class__.__name__)
 
 def get_model_fit(model, **kwargs):
     has_plot = getattr(model, "plot_model", None)
@@ -147,7 +148,7 @@ def get_model_fit(model, **kwargs):
         if "condition" in kwargs:
             return model.plot_model(model.fit, kwargs["condition"])
         else:
-            return model.plot_model(model.fit, )
+            return model.plot_model(model.fit)
     else:
         return model.model(model.fit)
 
@@ -174,4 +175,4 @@ def smooth_spikes(spikes, smoother_value=100, num_trials=0, subsample=0, conditi
     else:
         avg_spikes = spikes / int(num_trials)
 
-    return scipy.ndimage.filters.gaussian_filter(avg_spikes, smoother_value)
+    return scipy.ndimage.filters.gaussian_filter(1000*avg_spikes, smoother_value)
