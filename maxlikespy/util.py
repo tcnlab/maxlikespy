@@ -51,7 +51,8 @@ def check_path(path):
 
     if not os.path.exists(save_path+"/results"):
         os.mkdir(save_path+"/results")
-    
+    if not os.path.exists(save_path+"/results/figs/"):
+        os.mkdir(save_path+"/results/figs/")      
     return save_path
 
 
