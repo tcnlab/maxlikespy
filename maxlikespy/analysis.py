@@ -97,11 +97,11 @@ class DataProcessor(object):
         """Creates directories for artifacts if they don't exist.
 
         """
-    
-        if not os.path.exists(path+"/results"):
-            os.mkdir(path+"/results/")
-        if not os.path.exists(path+"/results/figs/"):
-            os.mkdir(path+"/results/figs/")
+        os.makedirs(path+"/results/figs/", mode=0o777, exist_ok=True)
+        # if not os.path.exists(path+"/results"):
+        #     os.mkdir(path+"/results/")
+        # if not os.path.exists(path+"/results/figs/"):
+        #     os.mkdir(path+"/results/figs/")
 
 
         
