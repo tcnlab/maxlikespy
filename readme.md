@@ -1,6 +1,6 @@
-# Maximum Likelihood in Python
+# Maximum Likelihood Estimation in Python
 
-This project is a translation of Matlab code that fits and accepts/rejects maximum likelihood models of neural spike trains.
+This project is a translation of Matlab code that fits and accepts/rejects maximum likelihood models of neural spike data.
 Parameter fitting is performed using SciPy's implementation of basinhopping - a global optimization algorithm.
 
 ## Getting Started
@@ -25,7 +25,7 @@ Supplentary information supported currently:
   
   "trial_lengths.json" - per trial trial lengths in case trial lengths are not fixed.
   
-  "conditions.json" - integer labels per cell and trial.
+  "conditions.json" - integer labels for experimental flags per cell and trial.
   
   "spike_info.json" - json-serialized dict containing labeled information on a millisecond resolution (such as animal position).
   
@@ -78,9 +78,9 @@ solver_params = {
         "use_jac": True,
     }
  ```
-These params are as described in the SciPy documentation [https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.basinhopping.html].
+These parameters are as described in the SciPy documentation [https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.basinhopping.html].
 
-If `use_jac` is `True`, Autograd [https://github.com/HIPS/autograd] will be used to provide the jacobian of your model's objective function to the solver. Autograd requires variety of constraints on your objective function to work and their documentation must be read.
+If `use_jac` is `True`, Autograd [https://github.com/HIPS/autograd] will be used to provide the jacobian of your model's objective function to the solver. Autograd requires variety of constraints on your objective function to work.
 
 Finally running
 
