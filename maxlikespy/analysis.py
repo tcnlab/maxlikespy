@@ -13,6 +13,7 @@ import sys
 from scipy.stats import chi2
 import matplotlib.pyplot as plt
 import errno
+import datetime
 
 
 class DataProcessor(object):
@@ -77,17 +78,11 @@ class DataProcessor(object):
             num_cells = len(self.cell_range)
             self.window = {}
             for cell in self.cell_range:
-                min_time = np.full((max(self.num_trials)), window[0])
-                max_time = np.full((max(self.num_trials)), window[1])
+                min_time = np.full((max(self.num_trials.values())), window[0])
+                max_time = np.full((max(self.num_trials.values())), window[1])
                 self.window[cell] = np.stack((min_time, max_time), axis=1)
-            # min_time = np.full((num_cells, max(self.num_trials)), window[0])
-            # max_time = np.full((num_cells, max(self.num_trials)), window[1])
-                       
-            # self.window = np.stack((min_time, max_time), axis=2)
         elif not window:
             self.window = self._extract_trial_lengths()
-        # if self.window is None:
-        #     self.window = self._set_default_time()
         self.spike_info = self._extract_spike_info()
         self.spikes_binned = self._bin_spikes()
         self.spikes_summed = self._sum_spikes()
@@ -98,13 +93,6 @@ class DataProcessor(object):
 
         """
         os.makedirs(path+"/results/figs/", mode=0o777, exist_ok=True)
-        # if not os.path.exists(path+"/results"):
-        #     os.mkdir(path+"/results/")
-        # if not os.path.exists(path+"/results/figs/"):
-        #     os.mkdir(path+"/results/figs/")
-
-
-        
 
     def _set_default_time(self):
         """Parses spikes and finds min and max spike times for bounds.
@@ -170,11 +158,18 @@ class DataProcessor(object):
             trials of a given cell.
 
         """
-        if os.path.exists(self.path + "/number_of_trials.json"):
-            with open(self.path + "/number_of_trials.json", 'rb') as f:
-                return np.array(json.load(f, encoding="bytes"))
-        else:
-            raise FileNotFoundError("number_of_trials.json not found")
+        # if os.path.exists(self.path + "/number_of_trials.json"):
+        #     with open(self.path + "/number_of_trials.json", 'rb') as f:
+        #         num_trials1 = np.array(json.load(f, encoding="bytes"))
+        # else:
+        #     raise FileNotFoundError("number_of_trials.json not found")
+        num_trials = {}
+        for cell in self.cell_range:
+            num_trials[cell] = (len(self.spikes[cell]))
+
+        return num_trials
+
+        
 
     def _extract_conditions(self):
         """Extracts trial conditions per cell per trial.
@@ -272,13 +267,8 @@ class DataProcessor(object):
                 max_upper = max(self.window[cell][:, 1])
             if min(self.window[cell][:, 0]) < min_lower:
                 min_lower = min(self.window[cell][:,0])
-        # max_upper = max(self.window[:][:,1])
-        # min_lower = min(self.window[:][:,0])
         total_bins = int(max_upper) - int(min_lower)
         for cell in self.spikes:
-            # total_bins = max(self.window[cell][:,1]) - min(self.window[cell][:,0])
-            # lower_bounds, upper_bounds = self.window[:, 0], self.window[:, 1]
-           
             lower_bounds, upper_bounds = self.window[cell][:, 0], self.window[cell][:, 1]
             
             spikes_binned[cell] = np.zeros(
@@ -366,6 +356,22 @@ class Pipeline(object):
         self.subsample = subsample
         self.model_dict = self._make_models(models)
         self.save_dir = util.check_path(save_dir)
+        self.run_log = self._init_log(models)
+
+    def _init_log(self, models):
+        log = {}
+        log["save_dir"] = self.save_dir
+        if self.subsample:
+            log["subsample"] = self.subsample
+        else:
+            log["subsample"] =  "None"
+        log["datetime"] = str(datetime.datetime.now())
+
+        log["models"] = {}
+        for model in models:
+            log["models"][model] = {}
+
+        return log
 
     def _make_models(self, models_to_fit, even_odd=None):
         """Initializes and creates dict of models to fit.
@@ -449,12 +455,14 @@ class Pipeline(object):
             for cell in self.cell_range:
                 for index, model in enumerate(models):
                     if model in self.model_dict:
+                        self.run_log["models"][model]["bounds"] = bounds[index]
                         self.model_dict[model][cell].set_bounds(bounds[index])
                     else:
                         raise ValueError("model does not match supplied models")
         else:
             for cell in self.cell_range:
                 if models in self.model_dict:
+                    self.run_log["models"][models]["bounds"] = bounds
                     self.model_dict[models][cell].set_bounds(bounds)
                 else:
                     raise ValueError("model does not match supplied models")
@@ -476,12 +484,14 @@ class Pipeline(object):
             for cell in self.cell_range:
                 for index, model in enumerate(models):
                     if model in self.model_dict:
+                        self.run_log["models"][model]["x0"] = x0[index]
                         self.model_dict[model][cell].set_x0(x0[index])
                     else:
                         raise ValueError("model does not match supplied models")
         else:
             for cell in self.cell_range:
                 if models in self.model_dict:
+                    self.run_log["models"][models]["x0"] = x0
                     self.model_dict[models][cell].set_x0(x0)
                 else:
                     raise ValueError("model does not match supplied models")
@@ -503,6 +513,7 @@ class Pipeline(object):
         """
         for cell in self.cell_range:
             if model in self.model_dict:
+                self.run_log["models"][model]["model_info"] = name
                 if per_cell:
                     self.model_dict[model][cell].set_info(name, data[(cell)])
                 else:
@@ -531,6 +542,9 @@ class Pipeline(object):
         if self.subsample:
             print("Splitting trials while also subsampling may lead to unsatisfactory results")
 
+        self.run_log["even_odd"] = True
+        if "solver_params" not in self.run_log:
+            self.run_log["solver_params"] = solver_params
         fits_even, fits_odd = {}, {}
         lls_even, lls_odd = {}, {}
         for cell in self.cell_range:
@@ -576,11 +590,11 @@ class Pipeline(object):
                 model_instance.window = original_window
                 model_instance.spikes = original_spikes
 
-            util.save_data({cell:fits_even[cell]}, "cell_fits_even", path=self.save_dir, cell=cell)
-            util.save_data({cell:lls_even[cell]}, "log_likelihoods_even", path=self.save_dir, cell=cell)
+            util.save_data({"log":self.run_log, cell:fits_even[cell]}, "cell_fits_even", path=self.save_dir, cell=cell)
+            util.save_data({"log":self.run_log, cell:lls_even[cell]}, "log_likelihoods_even", path=self.save_dir, cell=cell)
 
-            util.save_data({cell:fits_odd[cell]}, "cell_fits_odd", path=self.save_dir, cell=cell)
-            util.save_data({cell:lls_odd[cell]}, "log_likelihoods_odd", path=self.save_dir, cell=cell)
+            util.save_data({"log":self.run_log, cell:fits_odd[cell]}, "cell_fits_odd", path=self.save_dir, cell=cell)
+            util.save_data({"log":self.run_log,cell:lls_odd[cell]}, "log_likelihoods_odd", path=self.save_dir, cell=cell)
 
     def fit_all_models(self, solver_params=None):
         """Fits parameters for all models then saves to disk.
@@ -600,7 +614,7 @@ class Pipeline(object):
                 "method": "TNC",
                 "use_jac": False,
             }
-    
+        self.run_log["solver_params"] = solver_params
         cell_fits = {}
         cell_lls = {}
 
@@ -627,8 +641,8 @@ class Pipeline(object):
                 cell_fits[cell][model_instance.__class__.__name__] = param_dict
                 cell_lls[cell][model_instance.__class__.__name__] = model_instance.fun
             print("Models fit in {0} seconds".format(time.time() - self.time_start))
-            util.save_data({cell:cell_fits[cell]}, "cell_fits", path=self.save_dir, cell=cell)
-            util.save_data({cell:cell_lls[cell]}, "log_likelihoods", path=self.save_dir, cell=cell)
+            util.save_data({"log":self.run_log,cell:cell_fits[cell]}, "cell_fits", path=self.save_dir, cell=cell)
+            util.save_data({"log":self.run_log,cell:cell_lls[cell]}, "log_likelihoods", path=self.save_dir, cell=cell)
 
         return self.model_dict
 
@@ -662,7 +676,7 @@ class Pipeline(object):
             len(max_model.param_names) - len(min_model.param_names)
         ))
         comparison_name = max_model.__class__.__name__+"_"+min_model.__class__.__name__
-        util.update_comparisons(str(cell), comparison_name, outcome, path=self.save_dir)
+        util.update_comparisons(str(cell), comparison_name, outcome, self.run_log, path=self.save_dir)
         print(outcome)
         cellplot.plot_comparison(
             self.data_processor.spikes_summed[cell],
@@ -690,6 +704,7 @@ class Pipeline(object):
             Threshold for likelihood ratio test such that the nested model is considered better.
 
         """
+        self.run_log["compare_p_value"] = p_value
         outcomes = {cell: self._do_compare(
             model_min_name, model_max_name, cell, p_value, smoother_value) for cell in self.cell_range}
 
@@ -732,8 +747,10 @@ class Pipeline(object):
             maxname = max_model.__class__.__name__
             minname = min_model.__class__.__name__
             comparison_name = max_model.__class__.__name__+"_"+min_model.__class__.__name__
-            util.update_comparisons(str(cell), comparison_name, str(outcome_odd), path=self.save_dir, odd_even="odd")
-            util.update_comparisons(str(cell), comparison_name, str(outcome_even), path =self.save_dir, odd_even="even")
+            util.update_comparisons(
+                str(cell), comparison_name, str(outcome_odd), self.run_log, path=self.save_dir, odd_even="odd")
+            util.update_comparisons(
+                str(cell), comparison_name, str(outcome_even), self.run_log, path =self.save_dir, odd_even="even")
 
     def lr_test(self, ll_min, ll_max, p_threshold, delta_params):
         """Performs likelihood ratio test.
