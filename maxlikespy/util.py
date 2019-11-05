@@ -49,11 +49,8 @@ def check_path(path):
         save_path = path
     else:
         save_path = os.getcwd()
+    os.makedirs(save_path+"/results/figs/", mode=0o777, exist_ok=True)   
 
-    if not os.path.exists(save_path+"/results"):
-        os.mkdir(save_path+"/results")
-    if not os.path.exists(save_path+"/results/figs/"):
-        os.mkdir(save_path+"/results/figs/")      
     return save_path
 
 # def embed_log():
