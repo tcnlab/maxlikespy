@@ -104,14 +104,14 @@ def plot_comparison(spikes, model_min, model_max, cell_no, **kwargs):
     plt.xlim(min_time, max_time)
     fig.savefig(fig_name % cell_no)
 
-def plot_raster_spiketrain(summed_spikes, binned_spikes, window, cell_no, **kwargs):
+def plot_raster_spiketrain(summed_spikes, binned_spikes, window, cell_no, save_path, **kwargs):
     min_time = min(window[:,0])
     max_time = max(window[:,1])
     window = np.arange(min_time, max_time,
         1)
     fig = plt.figure()
     fig.suptitle("cell " + str(cell_no))
-    fig_name = os.getcwd() + "/results/figs/cell_%d_raster.png" 
+    fig_name = save_path + "/results/figs/cell_%d_raster.png" 
 
     plt.subplot(2, 1, 1)
     if "smoother_value" in kwargs:

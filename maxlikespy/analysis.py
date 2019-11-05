@@ -160,7 +160,7 @@ class DataProcessor(object):
         """
         # if os.path.exists(self.path + "/number_of_trials.json"):
         #     with open(self.path + "/number_of_trials.json", 'rb') as f:
-        #         num_trials1 = np.array(json.load(f, encoding="bytes"))
+        #         num_trials = np.array(json.load(f, encoding="bytes"))
         # else:
         #     raise FileNotFoundError("number_of_trials.json not found")
         num_trials = {}
@@ -794,15 +794,21 @@ class Pipeline(object):
                 extracted_model, cell, self.data_processor.spikes_summed_cat[cell], self.subsample, smoother_value=smoother_value)
             plt.show()
 
-    def show_rasters(self, save=False):
+    def show_rasters(self, show=True):
         """Plots binned spike raster and saves to disk.
 
         """
         for cell in self.cell_range:
 
             cellplot.plot_raster_spiketrain(
-                self.data_processor.spikes_summed[cell], self.data_processor.spikes_binned[cell], self.data_processor.window[cell], cell)
-            if save:
-                plt.savefig(self.save_dir+"cell_{0}_raster.png".format(cell))
-            else:
+                self.data_processor.spikes_summed[cell], 
+                self.data_processor.spikes_binned[cell], 
+                self.data_processor.window[cell], 
+                cell,
+                self.save_dir)
+            if show:
                 plt.show()
+            # if save:
+            #     plt.savefig(self.save_dir+"cell_{0}_raster.png".format(cell))
+            # else:
+            #     plt.show()
