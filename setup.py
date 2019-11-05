@@ -14,4 +14,6 @@ setup(name='maxlikespy',
           "Intended Audience :: Science/Research",
           "Topic :: Science/Engineering :: Information Analysis",
       ),
-      zip_safe=False)
+      zip_safe=False,
+      python_requires='>=3.6',
+)
