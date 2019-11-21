@@ -160,7 +160,7 @@ class DataProcessor(object):
         """
         # if os.path.exists(self.path + "/number_of_trials.json"):
         #     with open(self.path + "/number_of_trials.json", 'rb') as f:
-        #         num_trials = np.array(json.load(f, encoding="bytes"))
+        #         num_trials1 = np.array(json.load(f, encoding="bytes"))
         # else:
         #     raise FileNotFoundError("number_of_trials.json not found")
         num_trials = {}
@@ -565,10 +565,18 @@ class Pipeline(object):
                 # these are maintained to be set back later
                 original_window = model_instance.window
                 original_spikes = model_instance.spikes
+                original_num_trials = model_instance.num_trials
+                original_t = model_instance.t
                 # Even trials
                 model_instance.spikes = self._get_even_odd_trials(cell, True)
                 model_instance.window = original_window[::2]
-                print("fitting {0}".format(model))
+                model_instance.num_trials = model_instance.spikes.shape[0]
+                model_instance.even_odd_trials = "even"
+                try:
+                    model_instance.info_callback()
+                except Exception as e: 
+                    print(e)
+                print("fitting {0} with even trials".format(model))
                 model_instance.fit_params(solver_params)
 
                 # Build dict for json dump, json requires list instead of ndarray
@@ -578,9 +586,16 @@ class Pipeline(object):
                 lls_even[cell][model_instance.__class__.__name__] = model_instance.fun
 
                 # Odd trials
+                model_instance.t = original_t
                 model_instance.spikes = self._get_even_odd_trials(cell, False)
                 model_instance.window = original_window[1::2]
-                print("fitting {0}".format(model))
+                model_instance.num_trials = model_instance.spikes.shape[0]
+                model_instance.even_odd_trials = "odd"
+                try:
+                    model_instance.info_callback()
+                except Exception as e: 
+                    print(e)
+                print("fitting {0} with odd trials".format(model))
                 model_instance.fit_params(solver_params)
                 param_dict = {param: model_instance.fit.tolist()[index]
                               for index, param in enumerate(model_instance.param_names)}
@@ -589,6 +604,7 @@ class Pipeline(object):
                 # set back to original values
                 model_instance.window = original_window
                 model_instance.spikes = original_spikes
+                model_instance.num_trials = original_num_trials
 
             util.save_data({"log":self.run_log, cell:fits_even[cell]}, "cell_fits_even", path=self.save_dir, cell=cell)
             util.save_data({"log":self.run_log, cell:lls_even[cell]}, "log_likelihoods_even", path=self.save_dir, cell=cell)
