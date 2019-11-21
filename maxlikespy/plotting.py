@@ -138,7 +138,7 @@ def plot_fit(model, window):
 
     fit = get_model_fit(model)
     if fit.size == 1:
-        plt.plot(window, np.full(model.t.shape, fit), label=model.__class__.__name__ )
+        plt.plot(window, np.full(model.t.shape, fit*1000), label=model.__class__.__name__ )
     else:
         plt.plot(window, fit * 1000, label=model.__class__.__name__)
 
