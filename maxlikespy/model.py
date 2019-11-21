@@ -94,6 +94,7 @@ class Model(object):
         self.fit, self.fun = None, None
         self.info = {}
         self.param_names = None
+        self.even_odd_trials = None
 
     def fit_params(self, solver_params):
         """Fit model paramters using Particle Swarm Optimization then SciPy's minimize.
@@ -183,7 +184,7 @@ class Model(object):
 
         """       
         if len(bounds) != len(self.param_names):
-                raise AttributeError("Wrong number of bounds supplied")
+            raise AttributeError("Wrong number of bounds supplied")
         self.bounds = [bounds[x] for x in self.param_names]
         self.lb = [bounds[x][0] for x in self.param_names]
         self.ub = [bounds[x][1] for x in self.param_names]
