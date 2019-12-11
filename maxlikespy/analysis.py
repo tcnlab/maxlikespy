@@ -78,6 +78,9 @@ class DataProcessor(object):
             num_cells = len(self.cell_range)
             self.window = {}
             for cell in self.cell_range:
+                if self.num_trials[cell] == 0:
+                    print("cell with no trials or spikes detected")
+                    self.num_trials[cell] = 1
                 min_time = np.full((max(self.num_trials.values())), window[0])
                 max_time = np.full((max(self.num_trials.values())), window[1])
                 self.window[cell] = np.stack((min_time, max_time), axis=1)
@@ -160,7 +163,7 @@ class DataProcessor(object):
         """
         # if os.path.exists(self.path + "/number_of_trials.json"):
         #     with open(self.path + "/number_of_trials.json", 'rb') as f:
-        #         num_trials1 = np.array(json.load(f, encoding="bytes"))
+        #         num_trials = np.array(json.load(f, encoding="bytes"))
         # else:
         #     raise FileNotFoundError("number_of_trials.json not found")
         num_trials = {}
@@ -575,7 +578,7 @@ class Pipeline(object):
                 try:
                     model_instance.info_callback()
                 except Exception as e: 
-                    print(e)
+                    pass
                 print("fitting {0} with even trials".format(model))
                 model_instance.fit_params(solver_params)
 
