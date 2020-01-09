@@ -91,8 +91,10 @@ def plot_comparison(spikes, model_min, model_max, cell_no, **kwargs):
     plt.subplot(2, 1, 1)
     plot_fit(model_min, window)
     if "smoother_value" in kwargs:
+        # plt.plot(window, smooth_spikes(
+        #     spikes[:max_time], kwargs["smoother_value"], model_max.num_trials), label="spike_train")
         plt.plot(window, smooth_spikes(
-            spikes[:max_time], kwargs["smoother_value"], model_max.num_trials), label="spike_train")
+            spikes, kwargs["smoother_value"], model_max.num_trials), label="spike_train")
     else:
         plt.plot(window, smooth_spikes(
             spikes, num_trials=model_max.num_trials), label="spike_train")

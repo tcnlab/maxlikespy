@@ -265,13 +265,17 @@ class DataProcessor(object):
         spikes_binned = {}
         max_upper = 0
         min_lower = np.inf
-        for cell in self.window:
-            if max(self.window[cell][:, 1]) > max_upper:
-                max_upper = max(self.window[cell][:, 1])
-            if min(self.window[cell][:, 0]) < min_lower:
-                min_lower = min(self.window[cell][:,0])
-        total_bins = int(max_upper) - int(min_lower)
+        # for cell in self.window:
+        #     if max(self.window[cell][:, 1]) > max_upper:
+        #         max_upper = max(self.window[cell][:, 1])
+        #     if min(self.window[cell][:, 0]) < min_lower:
+        #         min_lower = min(self.window[cell][:,0])
+        # total_bins = int(max_upper) - int(min_lower)
         for cell in self.spikes:
+            
+            max_upper = max(self.window[cell][:, 1])
+            min_lower = min(self.window[cell][:,0])
+            total_bins = int(max_upper) - int(min_lower)
             lower_bounds, upper_bounds = self.window[cell][:, 0], self.window[cell][:, 1]
             
             spikes_binned[cell] = np.zeros(
