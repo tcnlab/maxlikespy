@@ -368,6 +368,7 @@ class Pipeline(object):
     def _init_log(self, models):
         log = {}
         log["save_dir"] = self.save_dir
+        log["data_path"] = self.data_processor.path
         if self.subsample:
             log["subsample"] = self.subsample
         else:
