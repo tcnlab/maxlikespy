@@ -2,8 +2,8 @@ import json
 import os
 
 
-def collect_data(cell_range, filename):
-    save_data(collate_output(cell_range, filename), filename)
+def collect_data(cell_range, filename, path):
+    save_data(collate_output(cell_range, filename, path), filename, path)
 
 def save_data(data, filename, path=None, cell=None):
     """Dumps data to json.
@@ -19,12 +19,13 @@ def save_data(data, filename, path=None, cell=None):
         with open((save_path + "/results/{0}.json").format(filename), 'w') as f:
             json.dump(data, f, sort_keys=False, indent=4, separators=(',', ': '))
 
-def collate_output(cell_range, filename):
-    out = {cell: get_data(filename, cell) for cell in cell_range}
+def collate_output(cell_range, filename, path):
+    out = {cell: get_data(filename, cell, path) for cell in cell_range}
+    # out["log"] = get_data(filename, cell_range[0])["log"]
     return out
  
-def get_data(filename, cell): #add try 
-    with open((os.getcwd() + "/results/{0}_{1}.json").format(filename, cell)) as d:
+def get_data(filename, cell, path): #add try 
+    with open((path + "/results/{0}_{1}.json").format(filename, cell)) as d:
         data = json.load(d)
     return data[str(cell)]
 

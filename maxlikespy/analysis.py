@@ -126,7 +126,7 @@ class DataProcessor(object):
                     # trial_lengths[i][:, 0] = int(trial_lengths[i][:,0])
                 return window
         except:
-            print("trial_lengths.json not found")
+            raise(FileNotFoundError("trial_lengths.json not found"))
             return None
 
     def _extract_spikes(self):
