@@ -161,14 +161,18 @@ class DataProcessor(object):
             trials of a given cell.
 
         """
-        # if os.path.exists(self.path + "/number_of_trials.json"):
-        #     with open(self.path + "/number_of_trials.json", 'rb') as f:
-        #         num_trials = np.array(json.load(f, encoding="bytes"))
-        # else:
-        #     raise FileNotFoundError("number_of_trials.json not found")
         num_trials = {}
-        for cell in self.cell_range:
-            num_trials[cell] = (len(self.spikes[cell]))
+        if os.path.exists(self.path + "/number_of_trials.json"):
+            with open(self.path + "/number_of_trials.json", 'rb') as f:
+                
+                nt_load = json.load(f, encoding="bytes")
+                for cell in self.cell_range:
+                    num_trials[cell] = nt_load[cell]
+        else:
+            # raise FileNotFoundError("number_of_trials.json not found")
+            
+            for cell in self.cell_range:
+                num_trials[cell] = (len(self.spikes[cell]))
 
         return num_trials
 
