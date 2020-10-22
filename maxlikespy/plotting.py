@@ -94,10 +94,10 @@ def plot_comparison(spikes, model_min, model_max, cell_no, **kwargs):
         # plt.plot(window, smooth_spikes(
         #     spikes[:max_time], kwargs["smoother_value"], model_max.num_trials), label="spike_train")
         plt.plot(window, smooth_spikes(
-            spikes, kwargs["smoother_value"], model_max.num_trials), label="spike_train")
+            spikes, kwargs["smoother_value"])/model_max.num_trials, label="spike_train")
     else:
         plt.plot(window, smooth_spikes(
-            spikes, num_trials=model_max.num_trials), label="spike_train")
+            spikes)/model_max.num_trials, label="spike_train")
     plot_fit(model_max, window)
     plt.legend(loc="upper right")
 
@@ -140,9 +140,9 @@ def plot_fit(model, window):
 
     fit = get_model_fit(model)
     if fit.size == 1:
-        plt.plot(window, np.full(model.t.shape, fit*1000), label=model.__class__.__name__ )
+        plt.plot(window, np.full(model.t.shape, fit), label=model.__class__.__name__ )
     else:
-        plt.plot(window, fit * 1000, label=model.__class__.__name__)
+        plt.plot(window, fit, label=model.__class__.__name__)
 
 def get_model_fit(model, **kwargs):
     has_plot = getattr(model, "plot_model", None)
@@ -177,4 +177,4 @@ def smooth_spikes(spikes, smoother_value=100, num_trials=0, subsample=0, conditi
     else:
         avg_spikes = spikes / int(num_trials)
 
-    return scipy.ndimage.filters.gaussian_filter(1000*avg_spikes, smoother_value)
+    return scipy.ndimage.filters.gaussian_filter(avg_spikes, smoother_value)
