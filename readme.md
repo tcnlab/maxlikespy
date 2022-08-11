@@ -90,7 +90,7 @@ These functions will save off in /results a plot of model comparisons and json f
 
 ## Adding custom models
 
-New models should be added to models.py and inherit the Model base class as well as implement all parent methods. A model, "Gaussian", consisting of a guassian firing field in addition to a constant firing field is provided for example.
+New models should be added to models.py and inherit the Model base class as well as implement all parent methods. A model, "Gaussian", consisting of a gaussian firing field in addition to a constant firing field is provided for example.
 
 
 ## Authors
