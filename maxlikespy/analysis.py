@@ -143,13 +143,19 @@ class DataProcessor(object):
             for i in self.cell_range:
                 spike_path = self.path + '/spikes/%d.json' % i
                 with open(spike_path, 'rb') as f:
-                    spikes[i] = np.array(json.load(f, encoding="bytes"))
+                    spikes[i] = np.array(json.load(f))
         else:
             print("Spikes folder not found.")
             raise FileNotFoundError(
                 errno.ENOENT, os.strerror(errno.ENOENT), self.path+"/spikes/")
 
         return spikes
+
+    def check_unit_trials(self, num_trials):
+        if num_trials == 0:
+            return False
+        else:
+            return True
 
     def _extract_num_trials(self):
         """Extracts number of trials per cell.
@@ -165,14 +171,25 @@ class DataProcessor(object):
         if os.path.exists(self.path + "/number_of_trials.json"):
             with open(self.path + "/number_of_trials.json", 'rb') as f:
                 
-                nt_load = json.load(f, encoding="bytes")
+                # nt_load = json.load(f, encoding="bytes")
+                nt_load = json.load(f)
                 for cell in self.cell_range:
-                    num_trials[cell] = nt_load[cell]
+                    loaded_trials = nt_load[cell]
+                    if self.check_unit_trials(loaded_trials):
+                        num_trials[cell] = nt_load[cell]
+                    else:
+                        raise ValueError(
+                            "cell has 0 trials, check number_of_trials.json"
+                        )
         else:
-            # raise FileNotFoundError("number_of_trials.json not found")
-            
             for cell in self.cell_range:
-                num_trials[cell] = (len(self.spikes[cell]))
+                calc_trials = len(self.spikes[cell])
+                if self.check_unit_trials(calc_trials):
+                    num_trials[cell] = calc_trials
+                else:
+                    raise ValueError(
+                        "cell has 0 trials, check input spikes"
+                    )
 
         return num_trials
 
@@ -191,7 +208,7 @@ class DataProcessor(object):
         # convert keys to int
         if os.path.exists(self.path + "/conditions.json"):
             with open(self.path + "/conditions.json", 'rb') as f:
-                loaded = json.load(f, encoding="bytes")
+                loaded = json.load(f)
                 if type(loaded) is dict:
                     return {int(k): v for k, v in loaded.items()}
                 if type(loaded) is list:
@@ -295,6 +312,7 @@ class DataProcessor(object):
                             value - time_low)] = 1
                 if trial_index < self.num_trials[cell]:
                     spikes_binned[cell][trial_index][int(upper_bounds[trial_index]- lower_bounds[trial_index]):] = np.nan
+                    print("test1111")
 
         return spikes_binned
 
@@ -665,12 +683,12 @@ class Pipeline(object):
                 model_instance.fit_params(solver_params)
                 # Build dict for json dump, json requires list instead of ndarray
                 param_dict = {param: model_instance.fit.tolist()[index]
-                              for index, param in enumerate(model_instance.param_names)}
+                            for index, param in enumerate(model_instance.param_names)}
                 cell_fits[cell][model_instance.__class__.__name__] = param_dict
                 cell_lls[cell][model_instance.__class__.__name__] = model_instance.fun
             print("Models fit in {0} seconds".format(time.time() - self.time_start))
             util.save_data({"log":self.run_log,cell:cell_fits[cell]}, "cell_fits", path=self.save_dir, cell=cell)
-            util.save_data({"log":self.run_log,cell:cell_lls[cell]}, "log_likelihoods", path=self.save_dir, cell=cell)
+            util.save_data({"log":self.run_log,cell:cell_lls[cell]}, "log_likelihoods", path=self.save_dir, cell=cell)               
 
         return self.model_dict
 
