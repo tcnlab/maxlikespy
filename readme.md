@@ -1,4 +1,4 @@
-# Maximum Likelihood Estimation in Python
+# Maximum Likelihood Estimation of Neural Spiking Data in Python
 
 This project is a translation of Matlab code that fits and accepts/rejects maximum likelihood models of neural spike data.
 Parameter fitting is performed using SciPy's implementation of basinhopping - a global optimization algorithm.
