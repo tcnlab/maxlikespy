@@ -19,8 +19,6 @@ matplotlib
 
 Spike data currently is expected to be in json formatted arrays of dimension NumberOfCells X MaxTrials, with spikes in milliseconds. Data processing code expects one file per cell, in a subdirectory named "spikes".
 
-In addition to spikes, "number_of_trials.json" must be created to denote how many trials exist for each cell.
-
 Supplentary information supported currently:
   
   "trial_lengths.json" - per trial trial lengths in case trial lengths are not fixed.
@@ -40,7 +38,7 @@ An instance of two required classes must be initialized:
   `DataProcessor(path, cell_range, window=None)` where
   * path - absolute file path to data folder
   * cell_range - range indicating the first and last cell to be analyzed
-  * window - An array describing the experimental time range `[0, 1000]`
+  * window - An array describing the experimental time range in milliseconds`[0, 1000]`
   
  `AnalysisPipeline(cell_range, data_processor, models, subsample)`where
  * cell_range - as above
@@ -93,11 +91,6 @@ These functions will save off in /results a plot of model comparisons and json f
 ## Adding custom models
 
 New models should be added to models.py and inherit the Model base class as well as implement all parent methods. A model, "Gaussian", consisting of a guassian firing field in addition to a constant firing field is provided for example.
-
-
-## Built With
-
-* [autograd](https://github.com/HIPS/autograd) - Automatic differentiation package for improved solver performance.
 
 
 ## Authors
